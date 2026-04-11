@@ -8,19 +8,43 @@ const vaultsageService = {
         "Talent Pass": { name: "ILO ISCO-08 / UNESCO ISCED", code: "TLT-ISCO-08" }
     },
 
-    async process(credential, context) {
+    redactPII(text) {
+        if (!text) return text;
+        // Basic PII Redaction
+        let redacted = text.replace(/\b\d{3}-\d{2}-\d{4}\b/g, '***-**-****'); // SSN
+        redacted = redacted.replace(/\b[\w.-]+@[\w.-]+\.\w{2,4}\b/g, '[EMAIL REDACTED]'); // Email
+        redacted = redacted.replace(/\b\d{4}-\d{4}-\d{4}-\d{4}\b/g, '****-****-****-****'); // Credit Card
+        redacted = redacted.replace(/\b(?:\+\d{1,3}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}\b/g, '[PHONE REDACTED]'); // Phone
+        return redacted;
+    },
+
+    async process(credentials, context) {
         const { targetCountry, goal } = context;
         const standard = this.GOAL_STANDARDS[goal] || { name: "ISO 27001", code: "ISO-STD" };
         
+        // Handle single or multiple credentials
+        const credsArray = Array.isArray(credentials) ? credentials : [credentials].filter(Boolean);
+        
+        // Perform PII Redaction
+        const redactedCreds = credsArray.map(cred => ({
+            ...cred,
+            content: this.redactPII(cred.content)
+        }));
+
         return new Promise((resolve) => {
             setTimeout(() => {
                 let stats = this.getStatsByGoal(goal, targetCountry);
+                
+                // Cross-Document Readiness Report
+                let docCountText = redactedCreds.length > 1 ? `across ${redactedCreds.length} documents` : 'for the document';
+
                 resolve({
                     docId: "VS-GTD-" + Math.random().toString(36).substr(2, 6).toUpperCase(),
                     standard_info: standard,
-                    translated_content: `Authenticated using ${standard.name} protocol. Validated for ${targetCountry}.`,
+                    translated_content: `Authenticated using ${standard.name} protocol. Validated for ${targetCountry} ${docCountText}. PII has been redacted for privacy.`,
                     converted_metrics: stats,
-                    advantage_analysis: `This credential shows high alignment with ${targetCountry}'s regulatory requirements for ${goal}.`
+                    advantage_analysis: `Comprehensive Readiness Report: Based on ${redactedCreds.length} credentials provided, this profile shows high alignment with ${targetCountry}'s regulatory requirements for ${goal}.`,
+                    redacted_credentials: redactedCreds
                 });
             }, 800);
         });

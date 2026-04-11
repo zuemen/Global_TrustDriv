@@ -64,13 +64,14 @@
                 </div>
             </div>
 
-            <!-- THE UPLOAD ZONE -->
+            <!-- THE UPLOAD ZONE (Cross-Document Query) -->
             <div class="bg-vault-800 border border-slate-700 rounded-2xl p-6 shadow-xl">
-                <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Secure Gateway</h2>
+                <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Secure Gateway (Multi-Doc)</h2>
                 <div id="drop-zone" class="border-2 border-dashed border-slate-700 hover:border-vault-accent rounded-xl p-6 text-center cursor-pointer transition-all bg-slate-900/50">
-                    <p id="file-label" class="text-xs text-slate-400">Select VC or Document</p>
-                    <input type="file" id="file-input" class="hidden">
+                    <p id="file-label" class="text-xs text-slate-400">Select Multiple VCs/Docs</p>
+                    <input type="file" id="file-input" class="hidden" multiple>
                 </div>
+                <div id="file-list" class="mt-2 text-[10px] text-slate-400"></div>
                 <button id="start-btn" class="w-full mt-4 bg-vault-accent hover:bg-sky-400 text-slate-900 font-black py-3 rounded-xl shadow-lg transition-all">
                     START ANALYSIS
                 </button>
@@ -80,18 +81,24 @@
             <div class="bg-slate-800/30 border border-slate-700/50 rounded-2xl p-6">
                 <h3 class="text-[10px] font-bold text-slate-500 uppercase mb-4">Quick Goal Demos</h3>
                 <div class="grid grid-cols-1 gap-2">
-                    <button onclick="runDemo('Study')" class="text-left px-3 py-2 text-[10px] bg-slate-900 hover:bg-slate-700 border border-slate-700 rounded">🎓 Academic Demo</button>
+                    <button onclick="runDemo('Study')" class="text-left px-3 py-2 text-[10px] bg-slate-900 hover:bg-slate-700 border border-slate-700 rounded">🎓 Academic Demo (Multi)</button>
                     <button onclick="runDemo('Career')" class="text-left px-3 py-2 text-[10px] bg-slate-900 hover:bg-slate-700 border border-slate-700 rounded">💼 Career Demo</button>
                     <button onclick="runDemo('Medical')" class="text-left px-3 py-2 text-[10px] bg-slate-900 hover:bg-slate-700 border border-slate-700 rounded">🩺 Medical Demo</button>
-                    <button onclick="runDemo('Nomad')" class="text-left px-3 py-2 text-[10px] bg-slate-900 hover:bg-slate-700 border border-slate-700 rounded">🌐 Nomad Demo</button>
-                    <button onclick="runDemo('Bank')" class="text-left px-3 py-2 text-[10px] bg-slate-900 hover:bg-slate-700 border border-slate-700 rounded">🏦 Banking Demo</button>
-                    <button onclick="runDemo('Talent')" class="text-left px-3 py-2 text-[10px] bg-slate-900 hover:bg-slate-700 border border-slate-700 rounded">⚡ Talent Demo</button>
                 </div>
             </div>
         </div>
 
         <!-- Right Results -->
         <div id="results-area" class="lg:col-span-3 space-y-6 opacity-30 transition-all duration-500">
+            <!-- SmartDrop Link Area -->
+            <div id="smartdrop-area" class="bg-vault-800 border border-vault-accent rounded-2xl p-4 shadow-xl hidden flex items-center justify-between">
+                <div>
+                    <p class="text-[10px] font-bold text-vault-accent uppercase">SmartDrop Link Generated</p>
+                    <p class="text-xs text-white" id="share-link-text">--</p>
+                </div>
+                <button id="copy-link-btn" class="bg-vault-accent text-slate-900 px-4 py-2 rounded-lg text-xs font-bold">Copy & Chat</button>
+            </div>
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-vault-800 border border-slate-700 rounded-2xl p-8 shadow-2xl relative overflow-hidden">
                     <div id="ial-ribbon" class="absolute top-0 right-0 bg-vault-accent px-4 py-1 text-[9px] font-black text-slate-900 uppercase hidden">IAL: VERIFIED</div>
@@ -119,7 +126,7 @@
                 <div class="p-8">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         <div>
-                            <p class="text-[10px] font-bold text-slate-500 uppercase mb-3">Decrypted Data</p>
+                            <p class="text-[10px] font-bold text-slate-500 uppercase mb-3">Redacted Data (PII Protected)</p>
                             <div id="orig-box" class="bg-slate-900 p-6 rounded-xl border border-slate-700 h-[150px] text-[11px] font-mono text-slate-500 overflow-auto whitespace-pre-wrap">--</div>
                         </div>
                         <div>
@@ -143,25 +150,39 @@
     </main>
 
     <script>
-        const stdMap = { "University Study": "UNESCO WRL", "Employment": "IEEE JOB", "Healthcare License": "HL7 FHIR", "Digital Nomad Visa": "FATF AML", "Banking Setup": "WOLFSBERG KYC", "Talent Pass": "ILO ISCO" };
-        let currentPayload = null;
+        const stdMap = { "University Study": "UNESCO WRL", "Employment": "IEEE JOB", "Healthcare License": "HL7 FHIR" };
+        let currentPayloads = [];
 
         function runDemo(type) {
             const data = {
-                'Study': { goal: 'University Study', country: 'USA', did: 'did:gtd:univ-992', content: 'Academic: CS, 3.9 GPA' },
-                'Career': { goal: 'Employment', country: 'Singapore', did: 'did:local:job-1', content: 'Experience: Lead Eng, 10Y' },
-                'Medical': { goal: 'Healthcare License', country: 'Germany', did: 'did:gtd:med-004', content: 'Practitioner: MD Sato, FHIR R4' },
-                'Nomad': { goal: 'Digital Nomad Visa', country: 'USA', did: 'did:local:nomad', content: 'Finance: $65k Income' },
-                'Bank': { goal: 'Banking Setup', country: 'Singapore', did: 'did:local:bank', content: 'KYC: Clear, Assets OK' },
-                'Talent': { goal: 'Talent Pass', country: 'UK', did: 'did:local:talent', content: 'Specialist: AI Architect' }
+                'Study': { 
+                    goal: 'University Study', country: 'USA', 
+                    payloads: [
+                        { did: 'did:gtd:univ-992', content: 'Academic Transcript: CS, 3.9 GPA. Student ID: 123-45-6789 (SSN included), Email: john.doe@example.com' },
+                        { did: 'did:gtd:bank-111', content: 'Proof of Funds: $50,000 USD. Contact: +1 (555) 123-4567.' }
+                    ]
+                },
+                'Career': { 
+                    goal: 'Employment', country: 'Singapore', 
+                    payloads: [
+                        { did: 'did:local:job-1', content: 'Experience: Lead Eng, 10Y. Email: dev@test.com. SSN: 987-65-4321' }
+                    ]
+                },
+                'Medical': { 
+                    goal: 'Healthcare License', country: 'Germany', 
+                    payloads: [
+                        { did: 'did:gtd:med-004', content: 'Practitioner: MD Sato, FHIR R4. Phone: 555-987-6543' }
+                    ]
+                }
             };
             const d = data[type];
             document.getElementById('goal').value = d.goal;
             document.getElementById('target-country').value = d.country;
             document.getElementById('standard-name').innerText = (stdMap[d.goal] || "ISO") + " ALIGNED";
-            currentPayload = { type: d.goal, did: d.did, content: d.content };
-            document.getElementById('file-label').innerText = `DEMO: ${d.goal}`;
-            alert(`Demo Loaded: ${d.goal}. Click START ANALYSIS.`);
+            currentPayloads = d.payloads;
+            document.getElementById('file-label').innerText = `DEMO: ${d.goal} (${currentPayloads.length} docs)`;
+            document.getElementById('file-list').innerText = currentPayloads.map(p => p.did).join(', ');
+            alert(`Demo Loaded: ${d.goal} with ${currentPayloads.length} documents. Click START ANALYSIS.`);
         }
 
         document.getElementById('start-btn').addEventListener('click', async () => {
@@ -170,7 +191,7 @@
             const goal = document.getElementById('goal').value;
             const country = document.getElementById('target-country').value;
 
-            if (!currentPayload) return alert("Select a Demo or Upload first.");
+            if (currentPayloads.length === 0) return alert("Select a Demo or Upload files first.");
 
             btn.innerText = "Processing...";
             btn.disabled = true;
@@ -179,7 +200,7 @@
                 const response = await fetch('/api/trust-notary', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ credential: currentPayload, targetCountry: country, goal: goal })
+                    body: JSON.stringify({ credentials: currentPayloads, targetCountry: country, goal: goal })
                 });
                 const data = await response.json();
                 if (data.success) {
@@ -191,27 +212,47 @@
                     document.getElementById('ial-ribbon').classList.remove('hidden');
                     document.getElementById('stars-area').innerText = "★".repeat(data.trustInfo.advantage.stars) + "☆".repeat(5 - data.trustInfo.advantage.stars);
                     document.getElementById('adv-text').innerText = data.trustInfo.advantage.analysis;
-                    document.getElementById('orig-box').innerText = currentPayload.content;
+                    
+                    // Display redacted contents
+                    const redactedText = data.analysis.redacted_credentials.map(c => `[${c.did}]\n${c.content}`).join('\n\n');
+                    document.getElementById('orig-box').innerText = redactedText;
+                    
                     document.getElementById('conv-val').innerText = data.analysis.converted_metrics.val;
                     document.getElementById('conv-sys').innerText = data.analysis.converted_metrics.system;
                     document.getElementById('conv-detail').innerText = data.analysis.converted_metrics.detail;
                     document.getElementById('ai-insight').innerText = data.analysis.advantage_analysis;
                     document.getElementById('std-code').innerText = "STD: " + data.analysis.standard_info.code;
+
+                    // Show SmartDrop Link
+                    if (data.shareLink) {
+                        const sdArea = document.getElementById('smartdrop-area');
+                        sdArea.classList.remove('hidden');
+                        document.getElementById('share-link-text').innerText = data.shareLink;
+                        
+                        document.getElementById('copy-link-btn').onclick = () => {
+                            window.open(data.shareLink, '_blank');
+                        };
+                    }
                 }
             } catch (e) { alert("Server disconnect. Check console."); }
             finally { btn.innerText = "START ANALYSIS"; btn.disabled = false; }
         });
 
-        // Simple file reader
+        // Simple file reader for multiple files
         document.getElementById('drop-zone').onclick = () => document.getElementById('file-input').click();
-        document.getElementById('file-input').onchange = (e) => {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                currentPayload = { type: "UserFile", did: "did:local:usr", content: ev.target.result };
-                document.getElementById('file-label').innerText = file.name;
-            };
-            reader.readAsText(file);
+        document.getElementById('file-input').onchange = async (e) => {
+            const files = Array.from(e.target.files);
+            currentPayloads = [];
+            const fileNames = [];
+            
+            for (let file of files) {
+                const text = await file.text();
+                currentPayloads.push({ did: `did:local:${file.name}`, content: text });
+                fileNames.push(file.name);
+            }
+            
+            document.getElementById('file-label').innerText = `${files.length} file(s) selected`;
+            document.getElementById('file-list').innerText = fileNames.join(', ');
         };
     </script>
 </body>
