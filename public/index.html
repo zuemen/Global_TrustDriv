@@ -3,256 +3,376 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global TrustDrive 7.0 | Elite Notary Portal</title>
+    <title>Global TrustDrive 7.0 | AI-Native Notary Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
+        .scanning-line { animation: scan 2s linear infinite; }
+        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .neon-glow { box-shadow: 0 0 15px rgba(56, 189, 248, 0.4); }
+    </style>
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        vault: { 900: '#0f172a', 800: '#1e293b', accent: '#38bdf8', safe: '#10b981', gold: '#fbbf24' }
+                        vault: { 900: '#020617', 800: '#0f172a', 700: '#1e293b', accent: '#38bdf8', safe: '#10b981', gold: '#fbbf24' }
                     }
                 }
             }
         }
     </script>
 </head>
-<body class="bg-vault-900 text-slate-300 font-sans antialiased">
+<body class="bg-vault-900 text-slate-300 font-sans antialiased overflow-x-hidden">
 
-    <!-- Sticky Nav -->
-    <nav class="border-b border-slate-700 bg-vault-800/90 backdrop-blur-md px-6 py-4 flex justify-between items-center sticky top-0 z-50">
-        <div class="flex items-center gap-3">
-            <svg class="w-8 h-8 text-vault-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-            <h1 class="text-xl font-bold text-white">Global <span class="text-vault-accent">TrustDrive</span></h1>
+    <!-- Glowing Background -->
+    <div class="fixed top-0 left-0 w-full h-full -z-10 pointer-events-none">
+        <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-vault-accent/10 blur-[120px] rounded-full"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-indigo-500/10 blur-[120px] rounded-full"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="border-b border-slate-800/50 bg-vault-900/80 backdrop-blur-xl px-10 py-6 flex justify-between items-center sticky top-0 z-50">
+        <div class="flex items-center gap-5">
+            <div class="w-12 h-12 bg-gradient-to-br from-vault-accent to-indigo-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-vault-accent/30">
+                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            </div>
+            <div>
+                <h1 class="text-2xl font-black text-white tracking-tighter">GLOBAL <span class="bg-clip-text text-transparent bg-gradient-to-r from-vault-accent to-indigo-400">TRUSTDRIVE</span></h1>
+                <p class="text-[10px] text-slate-500 font-black uppercase tracking-[0.3em]">AI-Native Notary Gateway v7.0</p>
+            </div>
         </div>
-        <div id="standard-badge" class="px-4 py-1 text-[10px] font-bold bg-vault-accent/10 text-vault-accent border border-vault-accent/20 rounded-full flex items-center gap-2">
-            <span class="w-2 h-2 bg-vault-accent rounded-full animate-pulse"></span>
-            <span id="standard-name">ISO 27001 ALIGNED</span>
+        <div id="status-badge" class="px-6 py-2 bg-slate-800/50 border border-vault-accent/20 rounded-full flex items-center gap-3">
+            <span class="w-2 h-2 bg-vault-accent rounded-full animate-pulse shadow-[0_0_8px_#38bdf8]"></span>
+            <span class="text-[10px] font-black text-vault-accent uppercase tracking-widest">System Online: ISO 27001</span>
         </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto mt-8 px-4 grid grid-cols-1 lg:grid-cols-4 gap-8 pb-20">
+    <main class="max-w-[1700px] mx-auto mt-12 px-10 grid grid-cols-1 xl:grid-cols-12 gap-12 pb-32">
         
-        <!-- Setup & Demo Sidebar -->
-        <div class="lg:col-span-1 space-y-6">
-            <div class="bg-vault-800 border border-slate-700 rounded-2xl p-6 shadow-xl">
-                <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-6">Execution Config</h2>
+        <!-- Sidebar: Configuration & Demos -->
+        <div class="xl:col-span-3 space-y-8">
+            <div class="glass rounded-[2rem] p-10 shadow-2xl">
+                <h2 class="text-[11px] font-black text-slate-500 uppercase tracking-[0.4em] mb-10 flex items-center gap-3">
+                    <span class="w-1.5 h-5 bg-vault-accent rounded-full"></span> Scenario Setup
+                </h2>
                 
-                <div class="space-y-4">
+                <div class="space-y-8">
                     <div>
-                        <label class="block text-[10px] text-slate-500 font-bold mb-2">Target Country</label>
-                        <select id="target-country" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-3 text-sm text-white focus:ring-2 focus:ring-vault-accent outline-none">
-                            <option value="USA">USA (North America)</option>
-                            <option value="Singapore">Singapore (ASEAN)</option>
-                            <option value="Germany">Germany (EU)</option>
-                            <option value="UK">United Kingdom</option>
-                            <option value="Japan">Japan (East Asia)</option>
+                        <label class="block text-[10px] text-slate-400 font-black mb-4 uppercase tracking-widest">Target Jurisdiction</label>
+                        <select id="target-country" class="w-full bg-slate-900/50 border border-slate-700/50 rounded-2xl px-5 py-5 text-sm text-white focus:ring-2 focus:ring-vault-accent outline-none appearance-none transition-all cursor-pointer hover:bg-slate-900 shadow-inner">
+                            <option value="USA">United States (Standard)</option>
+                            <option value="Germany">Germany (EU GDPR)</option>
+                            <option value="Singapore">Singapore (MAS)</option>
+                            <option value="UK">United Kingdom (FCA)</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-[10px] text-slate-500 font-bold mb-2">Notary Goal</label>
-                        <select id="goal" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-3 text-sm text-white focus:ring-2 focus:ring-vault-accent outline-none">
-                            <option value="University Study">🎓 University Study</option>
-                            <option value="Employment">💼 Professional Employment</option>
-                            <option value="Healthcare License">🩺 Healthcare License</option>
-                            <option value="Digital Nomad Visa">🌐 Digital Nomad Visa</option>
-                            <option value="Banking Setup">🏦 Banking Setup</option>
-                            <option value="Talent Pass">⚡ Talent Pass</option>
+                        <label class="block text-[10px] text-slate-400 font-black mb-4 uppercase tracking-widest">Notary Objective</label>
+                        <select id="goal" class="w-full bg-slate-900/50 border border-slate-700/50 rounded-2xl px-5 py-5 text-sm text-white focus:ring-2 focus:ring-vault-accent outline-none appearance-none transition-all cursor-pointer hover:bg-slate-900 shadow-inner">
+                            <option value="University Study">🎓 Academic Admission</option>
+                            <option value="Employment">💼 Professional Work Pass</option>
+                            <option value="Healthcare License">🩺 Medical Practice</option>
+                            <option value="Digital Nomad Visa">🌐 Global Mobility</option>
                         </select>
                     </div>
                 </div>
             </div>
 
-            <!-- THE UPLOAD ZONE (Cross-Document Query) -->
-            <div class="bg-vault-800 border border-slate-700 rounded-2xl p-6 shadow-xl">
-                <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Secure Gateway (Multi-Doc)</h2>
-                <div id="drop-zone" class="border-2 border-dashed border-slate-700 hover:border-vault-accent rounded-xl p-6 text-center cursor-pointer transition-all bg-slate-900/50">
-                    <p id="file-label" class="text-xs text-slate-400">Select Multiple VCs/Docs</p>
+            <!-- Upload Area -->
+            <div class="glass rounded-[2rem] p-10 shadow-2xl relative overflow-hidden group">
+                <div class="absolute -top-10 -right-10 w-32 h-32 bg-vault-accent/5 rounded-full blur-3xl group-hover:bg-vault-accent/10 transition-all duration-700"></div>
+                <h2 class="text-[11px] font-black text-slate-500 uppercase tracking-[0.4em] mb-8 flex items-center gap-3">
+                    <span class="w-1.5 h-5 bg-vault-safe rounded-full"></span> Secure Intake
+                </h2>
+                <div id="drop-zone" class="border-2 border-dashed border-slate-700/50 hover:border-vault-accent hover:bg-vault-accent/5 rounded-[1.5rem] p-10 text-center cursor-pointer transition-all duration-500 group">
+                    <div class="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all shadow-xl">
+                        <svg class="w-8 h-8 text-slate-400 group-hover:text-vault-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                    </div>
+                    <p id="file-label" class="text-sm text-slate-300 font-bold mb-1">Upload Documents</p>
+                    <p class="text-[9px] text-slate-500 uppercase tracking-tighter">Support Multi-File AI Cross-Query</p>
                     <input type="file" id="file-input" class="hidden" multiple>
                 </div>
-                <div id="file-list" class="mt-2 text-[10px] text-slate-400"></div>
-                <button id="start-btn" class="w-full mt-4 bg-vault-accent hover:bg-sky-400 text-slate-900 font-black py-3 rounded-xl shadow-lg transition-all">
-                    START ANALYSIS
+                <div id="file-list" class="mt-6 flex flex-wrap gap-2"></div>
+                <button id="start-btn" class="w-full mt-10 bg-gradient-to-r from-vault-accent to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-black py-5 rounded-2xl shadow-2xl shadow-vault-accent/30 transition-all duration-500 transform active:scale-95 uppercase tracking-[0.2em] text-xs">
+                    Execute AI Notary
                 </button>
             </div>
 
-            <!-- 6 FULL DEMOS -->
-            <div class="bg-slate-800/30 border border-slate-700/50 rounded-2xl p-6">
-                <h3 class="text-[10px] font-bold text-slate-500 uppercase mb-4">Quick Goal Demos</h3>
-                <div class="grid grid-cols-1 gap-2">
-                    <button onclick="runDemo('Study')" class="text-left px-3 py-2 text-[10px] bg-slate-900 hover:bg-slate-700 border border-slate-700 rounded">🎓 Academic Demo (Multi)</button>
-                    <button onclick="runDemo('Career')" class="text-left px-3 py-2 text-[10px] bg-slate-900 hover:bg-slate-700 border border-slate-700 rounded">💼 Career Demo</button>
-                    <button onclick="runDemo('Medical')" class="text-left px-3 py-2 text-[10px] bg-slate-900 hover:bg-slate-700 border border-slate-700 rounded">🩺 Medical Demo</button>
+            <!-- Scenarios -->
+            <div class="space-y-4">
+                <h3 class="text-[10px] font-black text-slate-600 uppercase tracking-[0.4em] px-6">Instant Demos</h3>
+                <div class="grid grid-cols-1 gap-4">
+                    <button onclick="runDemo('Study')" class="flex items-center gap-5 px-8 py-5 bg-slate-800/30 hover:bg-slate-800/60 border border-slate-700/30 rounded-[1.5rem] transition-all group hover:border-vault-accent/30">
+                        <span class="text-3xl group-hover:scale-125 group-hover:rotate-12 transition-transform">🎓</span>
+                        <div class="text-left">
+                            <p class="text-xs font-black text-white uppercase tracking-wider">Academic Bundle</p>
+                            <p class="text-[9px] text-slate-500 uppercase font-bold">3 ASSETS • MULTI-DOC AI</p>
+                        </div>
+                    </button>
+                    <button onclick="runDemo('Career')" class="flex items-center gap-5 px-8 py-5 bg-slate-800/30 hover:bg-slate-800/60 border border-slate-700/30 rounded-[1.5rem] transition-all group hover:border-vault-accent/30">
+                        <span class="text-3xl group-hover:scale-125 group-hover:rotate-12 transition-transform">💼</span>
+                        <div class="text-left">
+                            <p class="text-xs font-black text-white uppercase tracking-wider">Employment Pack</p>
+                            <p class="text-[9px] text-slate-500 uppercase font-bold">2 ASSETS • PII REDACTION</p>
+                        </div>
+                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- Right Results -->
-        <div id="results-area" class="lg:col-span-3 space-y-6 opacity-30 transition-all duration-500">
-            <!-- SmartDrop Link Area -->
-            <div id="smartdrop-area" class="bg-vault-800 border border-vault-accent rounded-2xl p-4 shadow-xl hidden flex items-center justify-between">
-                <div>
-                    <p class="text-[10px] font-bold text-vault-accent uppercase">SmartDrop Link Generated</p>
-                    <p class="text-xs text-white" id="share-link-text">--</p>
-                </div>
-                <button id="copy-link-btn" class="bg-vault-accent text-slate-900 px-4 py-2 rounded-lg text-xs font-bold">Copy & Chat</button>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-vault-800 border border-slate-700 rounded-2xl p-8 shadow-2xl relative overflow-hidden">
-                    <div id="ial-ribbon" class="absolute top-0 right-0 bg-vault-accent px-4 py-1 text-[9px] font-black text-slate-900 uppercase hidden">IAL: VERIFIED</div>
-                    <h3 class="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-4">SSI Multi-Tier Trust</h3>
-                    <div class="flex items-center gap-6">
-                        <span id="cred-score" class="text-7xl font-black text-white tracking-tighter">--</span>
-                        <div>
-                            <span id="cred-level" class="block text-vault-safe font-black text-lg uppercase">Pending</span>
-                            <p id="cred-status" class="text-[10px] text-slate-500 mt-1 uppercase">Ready</p>
+        <!-- Main Display: Visualizer & Results -->
+        <div class="xl:col-span-9 space-y-10">
+            
+            <div id="main-display" class="grid grid-cols-1 lg:grid-cols-12 gap-10 opacity-40 grayscale transition-all duration-1000">
+                
+                <!-- Visualizer Area -->
+                <div class="lg:col-span-7 space-y-8">
+                    <div class="glass rounded-[2.5rem] overflow-hidden relative min-h-[550px] shadow-2xl flex flex-col border border-white/5">
+                        <div class="bg-slate-800/80 px-8 py-5 border-b border-slate-700/50 flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <span class="w-3.5 h-3.5 bg-red-500/80 rounded-full shadow-lg shadow-red-500/20"></span>
+                                <span class="w-3.5 h-3.5 bg-yellow-500/80 rounded-full shadow-lg shadow-yellow-500/20"></span>
+                                <span class="w-3.5 h-3.5 bg-green-500/80 rounded-full shadow-lg shadow-green-500/20"></span>
+                            </div>
+                            <span class="text-[10px] font-mono text-slate-500 font-black uppercase tracking-[0.2em]" id="preview-filename">NO ACTIVE ASSETS</span>
                         </div>
-                    </div>
-                </div>
-                <div class="bg-vault-800 border border-slate-700 rounded-2xl p-8 shadow-2xl">
-                    <h3 class="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-4 text-vault-gold">Advantage Prob</h3>
-                    <div id="stars-area" class="text-4xl text-vault-gold mb-2 tracking-widest transition-all">☆☆☆☆☆</div>
-                    <p id="adv-text" class="text-xs text-slate-400 italic">Analysis waiting...</p>
-                </div>
-            </div>
-
-            <div class="bg-vault-800 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden border-t-4 border-t-vault-accent">
-                <div class="bg-slate-800/50 px-8 py-5 border-b border-slate-700 flex justify-between items-center font-mono">
-                    <h3 class="text-white font-bold text-xs uppercase">Unified AI Notary Report</h3>
-                    <span id="std-code" class="text-[10px] text-vault-accent">STD: PENDING</span>
-                </div>
-                <div class="p-8">
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <div>
-                            <p class="text-[10px] font-bold text-slate-500 uppercase mb-3">Redacted Data (PII Protected)</p>
-                            <div id="orig-box" class="bg-slate-900 p-6 rounded-xl border border-slate-700 h-[150px] text-[11px] font-mono text-slate-500 overflow-auto whitespace-pre-wrap">--</div>
-                        </div>
-                        <div>
-                            <p class="text-[10px] font-bold text-vault-accent uppercase mb-3">Standardized Alignment</p>
-                            <div class="bg-slate-900 p-6 rounded-xl border border-vault-accent/20 border-l-4 border-l-vault-accent h-[150px]">
-                                <p id="conv-val" class="text-4xl font-black text-white mb-1">--</p>
-                                <p id="conv-sys" class="text-[10px] text-vault-accent font-bold uppercase">--</p>
-                                <hr class="border-slate-800 my-2">
-                                <p id="conv-detail" class="text-[10px] text-slate-500 font-mono italic">--</p>
+                        <div class="flex-1 relative flex items-center justify-center p-12 bg-slate-950/50">
+                            <!-- Scanning Overlay -->
+                            <div id="scan-overlay" class="absolute inset-0 z-20 pointer-events-none hidden">
+                                <div class="absolute w-full h-1 bg-vault-accent shadow-[0_0_20px_#38bdf8,0_0_40px_#38bdf8] scanning-line"></div>
+                                <div class="absolute inset-0 bg-vault-accent/10 backdrop-blur-[1px]"></div>
+                            </div>
+                            
+                            <div id="image-preview" class="w-full h-full max-h-[650px] flex flex-wrap gap-8 overflow-y-auto content-start justify-center py-4">
+                                <div class="text-slate-800 flex flex-col items-center justify-center gap-8 py-20">
+                                    <svg class="w-32 h-32 opacity-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="0.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    <p class="text-[11px] font-black uppercase tracking-[0.5em] opacity-20">Waiting for Document Authentication</p>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="mt-8 bg-slate-900/50 border border-slate-700 p-6 rounded-xl">
-                        <p id="ai-insight" class="text-sm text-slate-400 italic font-serif leading-relaxed">
-                            Upload or select a demo to generate AI insights.
+
+                    <!-- SmartDrop Banner -->
+                    <div id="smartdrop-banner" class="hidden glass rounded-[2rem] p-8 border-l-[6px] border-l-vault-accent bg-gradient-to-r from-vault-accent/10 to-transparent flex items-center justify-between shadow-2xl animate-in slide-in-from-bottom duration-700">
+                        <div class="flex items-center gap-8">
+                            <div class="w-16 h-16 bg-vault-accent/20 rounded-[1.25rem] flex items-center justify-center text-vault-accent shadow-inner">
+                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                            </div>
+                            <div>
+                                <p class="text-sm font-black text-white uppercase tracking-widest mb-1">VaultSage SmartDrop™ Gateway</p>
+                                <p class="text-[11px] text-vault-accent font-mono opacity-80" id="share-url">--</p>
+                            </div>
+                        </div>
+                        <button id="share-btn" class="px-8 py-4 bg-vault-accent text-vault-900 font-black rounded-2xl text-[11px] uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-xl shadow-vault-accent/30">
+                            Copy & Open Share
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Analysis Sidebar -->
+                <div class="lg:col-span-5 space-y-8">
+                    <div class="grid grid-cols-1 gap-8">
+                        <!-- SSI Trust -->
+                        <div class="glass rounded-[2rem] p-10 relative overflow-hidden shadow-2xl">
+                            <div class="absolute top-0 right-0 bg-vault-accent/20 px-6 py-2 text-[9px] font-black text-vault-accent rounded-bl-2xl uppercase border-b border-l border-white/5" id="ial-tag">IAL: LEVEL 0</div>
+                            <h3 class="text-slate-500 text-[10px] font-black uppercase tracking-[0.4em] mb-10">SSI Sovereign Trust Index</h3>
+                            <div class="flex items-end gap-6">
+                                <span id="trust-score" class="text-8xl font-black text-white tracking-tighter tabular-nums leading-none">--</span>
+                                <div class="pb-3 flex-1">
+                                    <span id="trust-level" class="block text-vault-safe font-black text-sm uppercase tracking-[0.2em] mb-3">Evaluation Pending</span>
+                                    <div class="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden shadow-inner border border-white/5">
+                                        <div id="trust-progress" class="h-full bg-gradient-to-r from-vault-accent to-vault-safe transition-all duration-1500 w-0"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Probability -->
+                        <div class="glass rounded-[2rem] p-10 bg-gradient-to-br from-vault-gold/10 to-transparent border-vault-gold/20 shadow-2xl">
+                            <h3 class="text-vault-gold text-[10px] font-black uppercase tracking-[0.4em] mb-8">Approval Probability</h3>
+                            <div id="stars" class="text-5xl text-vault-gold mb-6 tracking-[0.25em] drop-shadow-[0_0_20px_rgba(251,191,36,0.5)]">☆☆☆☆☆</div>
+                            <p id="advantage-text" class="text-xs text-slate-400 font-medium italic leading-relaxed">Cognitive engine awaiting document stream...</p>
+                        </div>
+                    </div>
+
+                    <!-- Notary Report -->
+                    <div class="glass rounded-[2.5rem] overflow-hidden border-t-[5px] border-vault-accent shadow-2xl">
+                        <div class="bg-slate-800/60 px-8 py-6 border-b border-slate-700/50 flex justify-between items-center">
+                            <h3 class="text-white font-black text-[11px] uppercase tracking-[0.3em]">AI Standardized Report</h3>
+                            <span id="std-code" class="px-3 py-1 bg-vault-accent/10 text-vault-accent rounded-lg text-[9px] font-mono font-black border border-vault-accent/20">STD: N/A</span>
+                        </div>
+                        <div class="p-10 space-y-8">
+                            <div class="bg-slate-900/90 rounded-[1.5rem] p-8 border border-white/5 shadow-inner">
+                                <p id="conv-val" class="text-5xl font-black text-white mb-2 tabular-nums">--</p>
+                                <p id="conv-sys" class="text-[11px] text-vault-accent font-black uppercase tracking-[0.2em]">Cross-System Mapping...</p>
+                                <div class="h-px bg-slate-800 my-6"></div>
+                                <p id="conv-detail" class="text-xs text-slate-500 font-mono leading-relaxed italic">Detailed biometric and academic metrics will appear here.</p>
+                            </div>
+                            <div class="bg-slate-950/50 rounded-[1.5rem] p-8 border border-white/5">
+                                <p class="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em] mb-5">Privacy Redaction Layer (Active)</p>
+                                <div id="redacted-box" class="text-[11px] font-mono text-slate-500 max-h-[180px] overflow-y-auto leading-loose whitespace-pre-wrap">--</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Deep Insight Area -->
+            <div id="insight-display" class="glass rounded-[3rem] p-12 border border-indigo-500/20 opacity-0 transition-all duration-1500 translate-y-16 shadow-2xl">
+                <div class="flex items-start gap-10">
+                    <div class="w-20 h-20 bg-indigo-500/20 rounded-[1.5rem] flex items-center justify-center text-indigo-400 shrink-0 shadow-2xl shadow-indigo-500/10">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-white font-black text-base uppercase tracking-[0.3em] mb-6">AI Deep Learning Readiness Verdict</h3>
+                        <p id="ai-report" class="text-slate-400 text-base font-serif italic leading-relaxed">
+                            Awaiting data input...
                         </p>
                     </div>
                 </div>
             </div>
+
         </div>
     </main>
 
     <script>
-        const stdMap = { "University Study": "UNESCO WRL", "Employment": "IEEE JOB", "Healthcare License": "HL7 FHIR" };
         let currentPayloads = [];
 
         function runDemo(type) {
             const data = {
-                'Study': { 
-                    goal: 'University Study', country: 'USA', 
+                'Study': {
+                    goal: 'University Study', country: 'Germany',
                     payloads: [
-                        { did: 'did:gtd:univ-992', content: 'Academic Transcript: CS, 3.9 GPA. Student ID: 123-45-6789 (SSN included), Email: john.doe@example.com' },
-                        { did: 'did:gtd:bank-111', content: 'Proof of Funds: $50,000 USD. Contact: +1 (555) 123-4567.' }
+                        { did: 'did:gtd:edu-001', name: 'Academic_Transcript.pdf', content: 'Student: Michael Chen. ID: 192-33-8847. GPA: 3.8/4.0. Completed 128 credits in Computer Science.', img: 'https://cdn.pixabay.com/photo/2013/07/12/15/20/document-149692_1280.png' },
+                        { did: 'did:gtd:edu-002', name: 'Degree_Certificate.pdf', content: 'Degree: Bachelor of Science. Issue Date: 2024-06. Email: m.chen@edu.university.tw. Phone: +886 912-345-678', img: 'https://cdn.pixabay.com/photo/2012/04/18/22/07/certificate-38036_1280.png' },
+                        { did: 'did:gtd:fin-001', name: 'Bank_Statement.pdf', content: 'Current Balance: $52,000 USD. Bank: Global Trust Bank. Account: ****-****-9928. Verified Payer: Chen Family.', img: 'https://cdn.pixabay.com/photo/2016/09/01/16/07/cash-1636540_1280.png' }
                     ]
                 },
-                'Career': { 
-                    goal: 'Employment', country: 'Singapore', 
+                'Career': {
+                    goal: 'Employment', country: 'Singapore',
                     payloads: [
-                        { did: 'did:local:job-1', content: 'Experience: Lead Eng, 10Y. Email: dev@test.com. SSN: 987-65-4321' }
-                    ]
-                },
-                'Medical': { 
-                    goal: 'Healthcare License', country: 'Germany', 
-                    payloads: [
-                        { did: 'did:gtd:med-004', content: 'Practitioner: MD Sato, FHIR R4. Phone: 555-987-6543' }
+                        { did: 'did:gtd:exp-001', name: 'Employment_Letter.pdf', content: 'Position: Senior Architect at GlobalTech. Tenure: 2018-2024. Email: hr-verified@globaltech.com. Salary: $15,000/mo.', img: 'https://cdn.pixabay.com/photo/2013/07/12/15/20/document-149692_1280.png' },
+                        { did: 'did:gtd:tax-001', name: 'Tax_Document.pdf', content: 'Annual Tax Return 2023. SSN: 887-22-1144. Address: 123 Tech Lane, CA 94043.', img: 'https://cdn.pixabay.com/photo/2014/12/21/23/34/check-575778_1280.png' }
                     ]
                 }
             };
             const d = data[type];
             document.getElementById('goal').value = d.goal;
             document.getElementById('target-country').value = d.country;
-            document.getElementById('standard-name').innerText = (stdMap[d.goal] || "ISO") + " ALIGNED";
             currentPayloads = d.payloads;
-            document.getElementById('file-label').innerText = `DEMO: ${d.goal} (${currentPayloads.length} docs)`;
-            document.getElementById('file-list').innerText = currentPayloads.map(p => p.did).join(', ');
-            alert(`Demo Loaded: ${d.goal} with ${currentPayloads.length} documents. Click START ANALYSIS.`);
+            
+            updatePreview(d.payloads);
+            document.getElementById('file-label').innerText = `SCENARIO: ${d.goal} LOADED`;
+            document.getElementById('main-display').classList.remove('opacity-40', 'grayscale');
+        }
+
+        function updatePreview(payloads) {
+            const container = document.getElementById('image-preview');
+            const nameLabel = document.getElementById('preview-filename');
+            container.innerHTML = '';
+            
+            payloads.forEach(p => {
+                const div = document.createElement('div');
+                div.className = "w-[280px] h-[380px] bg-white rounded-xl shadow-2xl overflow-hidden border border-slate-300 relative group cursor-pointer hover:scale-105 transition-all duration-500";
+                div.innerHTML = `
+                    <img src="${p.img}" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-vault-900/70 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity p-6">
+                        <p class="text-[11px] text-vault-accent font-black uppercase tracking-widest mb-2">Authenticated Asset</p>
+                        <p class="text-[10px] text-white font-mono text-center">${p.name}</p>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+            nameLabel.innerText = payloads.map(p => p.name).join(' • ');
         }
 
         document.getElementById('start-btn').addEventListener('click', async () => {
+            if (currentPayloads.length === 0) return alert("System requires asset injection. Please load a demo or upload documents.");
+            
             const btn = document.getElementById('start-btn');
-            const res = document.getElementById('results-area');
-            const goal = document.getElementById('goal').value;
-            const country = document.getElementById('target-country').value;
-
-            if (currentPayloads.length === 0) return alert("Select a Demo or Upload files first.");
-
-            btn.innerText = "Processing...";
+            const scan = document.getElementById('scan-overlay');
+            const main = document.getElementById('main-display');
+            const insight = document.getElementById('insight-display');
+            
             btn.disabled = true;
+            btn.innerText = "AUTHENTICATING...";
+            scan.classList.remove('hidden');
+            main.classList.remove('opacity-40', 'grayscale');
 
             try {
                 const response = await fetch('/api/trust-notary', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ credentials: currentPayloads, targetCountry: country, goal: goal })
+                    body: JSON.stringify({ 
+                        credentials: currentPayloads, 
+                        targetCountry: document.getElementById('target-country').value,
+                        goal: document.getElementById('goal').value
+                    })
                 });
                 const data = await response.json();
+                
                 if (data.success) {
-                    res.style.opacity = "1";
-                    document.getElementById('cred-score').innerText = data.trustInfo.score;
-                    document.getElementById('cred-level').innerText = data.trustInfo.level;
-                    document.getElementById('cred-status').innerText = data.trustInfo.statusText;
-                    document.getElementById('ial-ribbon').innerText = `IAL: ${data.trustInfo.ial}`;
-                    document.getElementById('ial-ribbon').classList.remove('hidden');
-                    document.getElementById('stars-area').innerText = "★".repeat(data.trustInfo.advantage.stars) + "☆".repeat(5 - data.trustInfo.advantage.stars);
-                    document.getElementById('adv-text').innerText = data.trustInfo.advantage.analysis;
-                    
-                    // Display redacted contents
-                    const redactedText = data.analysis.redacted_credentials.map(c => `[${c.did}]\n${c.content}`).join('\n\n');
-                    document.getElementById('orig-box').innerText = redactedText;
-                    
-                    document.getElementById('conv-val').innerText = data.analysis.converted_metrics.val;
-                    document.getElementById('conv-sys').innerText = data.analysis.converted_metrics.system;
-                    document.getElementById('conv-detail').innerText = data.analysis.converted_metrics.detail;
-                    document.getElementById('ai-insight').innerText = data.analysis.advantage_analysis;
-                    document.getElementById('std-code').innerText = "STD: " + data.analysis.standard_info.code;
-
-                    // Show SmartDrop Link
-                    if (data.shareLink) {
-                        const sdArea = document.getElementById('smartdrop-area');
-                        sdArea.classList.remove('hidden');
-                        document.getElementById('share-link-text').innerText = data.shareLink;
+                    setTimeout(() => {
+                        scan.classList.add('hidden');
+                        insight.classList.remove('opacity-0', 'translate-y-16');
                         
-                        document.getElementById('copy-link-btn').onclick = () => {
-                            window.open(data.shareLink, '_blank');
-                        };
-                    }
+                        document.getElementById('trust-score').innerText = data.trustInfo.score;
+                        document.getElementById('trust-level').innerText = data.trustInfo.level;
+                        document.getElementById('trust-progress').style.width = data.trustInfo.score + '%';
+                        document.getElementById('ial-tag').innerText = `IAL: ${data.trustInfo.ial}`;
+                        document.getElementById('stars').innerText = "★".repeat(data.trustInfo.advantage.stars) + "☆".repeat(5 - data.trustInfo.advantage.stars);
+                        document.getElementById('advantage-text').innerText = data.trustInfo.advantage.analysis;
+                        
+                        document.getElementById('conv-val').innerText = data.analysis.converted_metrics.val;
+                        document.getElementById('conv-sys').innerText = data.analysis.converted_metrics.system;
+                        document.getElementById('conv-detail').innerText = data.analysis.converted_metrics.detail;
+                        document.getElementById('std-code').innerText = "STD: " + data.analysis.standard_info.code;
+                        document.getElementById('ai-report').innerText = data.analysis.advantage_analysis;
+                        
+                        const redacted = data.analysis.redacted_credentials.map(c => `[FILE: ${c.name}]\n${c.content}`).join('\n\n');
+                        document.getElementById('redacted-box').innerText = redacted;
+
+                        if (data.shareLink) {
+                            document.getElementById('smartdrop-banner').classList.remove('hidden');
+                            document.getElementById('share-url').innerText = data.shareLink;
+                            document.getElementById('share-btn').onclick = () => {
+                                navigator.clipboard.writeText(data.shareLink);
+                                alert("SmartDrop Link Copied! Redirecting to Secure Viewer...");
+                                window.open(data.shareLink, '_blank');
+                            };
+                        }
+                        btn.disabled = false;
+                        btn.innerText = "Execute AI Notary";
+                    }, 2500);
                 }
-            } catch (e) { alert("Server disconnect. Check console."); }
-            finally { btn.innerText = "START ANALYSIS"; btn.disabled = false; }
+            } catch (e) {
+                alert("Protocol Breach: Server connection failed.");
+                btn.disabled = false;
+            }
         });
 
-        // Simple file reader for multiple files
         document.getElementById('drop-zone').onclick = () => document.getElementById('file-input').click();
         document.getElementById('file-input').onchange = async (e) => {
             const files = Array.from(e.target.files);
             currentPayloads = [];
-            const fileNames = [];
+            const list = document.getElementById('file-list');
+            list.innerHTML = '';
             
             for (let file of files) {
                 const text = await file.text();
-                currentPayloads.push({ did: `did:local:${file.name}`, content: text });
-                fileNames.push(file.name);
+                const p = { 
+                    did: `did:local:${file.name}`, 
+                    name: file.name, 
+                    content: text, 
+                    img: 'https://cdn.pixabay.com/photo/2013/07/12/15/20/document-149692_1280.png' 
+                };
+                currentPayloads.push(p);
+                list.innerHTML += `<span class="px-4 py-2 bg-slate-800 rounded-xl text-[10px] border border-slate-700 text-slate-400 font-mono shadow-inner">${file.name}</span>`;
             }
-            
-            document.getElementById('file-label').innerText = `${files.length} file(s) selected`;
-            document.getElementById('file-list').innerText = fileNames.join(', ');
+            updatePreview(currentPayloads);
+            document.getElementById('main-display').classList.remove('opacity-40', 'grayscale');
         };
     </script>
 </body>
