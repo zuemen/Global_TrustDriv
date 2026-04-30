@@ -4,21 +4,25 @@ const FormData = require('form-data');
 const API_BASE = 'https://api.vaultsage.ai/api/v1';
 
 const GOAL_STANDARDS = {
-  'University Study':   { name: 'UNESCO WRL / ECTS',           code: 'EDU-WRL-2026'  },
-  'Employment':         { name: 'OPEN BADGES 3.0 / IEEE 1484', code: 'JOB-OB-3.0'   },
-  'Healthcare License': { name: 'HL7 FHIR R4 / PRACTITIONER', code: 'MED-FHIR-R4'  },
-  'Digital Nomad Visa': { name: 'FATF AML / ISO 20022',        code: 'FIN-FATF-R16' },
-  'Banking Setup':      { name: 'WOLFSBERG KYC / ISO 20022',   code: 'FIN-KYC-WOLF' },
-  'Talent Pass':        { name: 'ILO ISCO-08 / UNESCO ISCED',  code: 'TLT-ISCO-08'  },
+  'University Study':       { name: 'UNESCO WRL / ECTS',           code: 'EDU-WRL-2026'  },
+  'Employment':             { name: 'OPEN BADGES 3.0 / IEEE 1484', code: 'JOB-OB-3.0'   },
+  'Healthcare License':     { name: 'HL7 FHIR R4 / PRACTITIONER', code: 'MED-FHIR-R4'  },
+  'Digital Nomad Visa':     { name: 'FATF AML / ISO 20022',        code: 'FIN-FATF-R16' },
+  'Banking Setup':          { name: 'WOLFSBERG KYC / ISO 20022',   code: 'FIN-KYC-WOLF' },
+  'Talent Pass':            { name: 'ILO ISCO-08 / UNESCO ISCED',  code: 'TLT-ISCO-08'  },
+  'Skilled Migration Visa': { name: 'ILO ISCO-08 / ANZSCO',        code: 'MIG-ISCO-ANZ' },
+  'Exchange Program':       { name: 'UNESCO / ERASMUS+ ECTS',      code: 'EDU-EX-2026'  },
 };
 
 const GOAL_METRICS = {
-  'University Study':   { val: '3.92 / 4.0',    system: 'WES Equivalent',  detail: 'Percentile: Top 5%'    },
-  'Employment':         { val: 'L7 Architect',   system: 'IEEE 1484.20.1',  detail: 'Skill Match: 94%'      },
-  'Healthcare License': { val: 'Practitioner R1',system: 'HL7 FHIR R4',    detail: 'EU Reciprocity: Full'  },
-  'Digital Nomad Visa': { val: '$65,000 USD',    system: 'ISO 20022 / AML', detail: 'KYC Status: Verified'  },
-  'Banking Setup':      { val: 'Tier 1 Private', system: 'Wolfsberg KYC',   detail: 'Risk Level: Low'       },
-  'Talent Pass':        { val: 'O-1A Aligned',   system: 'ILO ISCO-08',     detail: 'Expertise: Verified'   },
+  'University Study':       { val: '3.92 / 4.0',    system: 'WES Equivalent',  detail: 'Percentile: Top 5%'    },
+  'Employment':             { val: 'L7 Architect',   system: 'IEEE 1484.20.1',  detail: 'Skill Match: 94%'      },
+  'Healthcare License':     { val: 'Practitioner R1',system: 'HL7 FHIR R4',    detail: 'EU Reciprocity: Full'  },
+  'Digital Nomad Visa':     { val: '$65,000 USD',    system: 'ISO 20022 / AML', detail: 'KYC Status: Verified'  },
+  'Banking Setup':          { val: 'Tier 1 Private', system: 'Wolfsberg KYC',   detail: 'Risk Level: Low'       },
+  'Talent Pass':            { val: 'O-1A Aligned',   system: 'ILO ISCO-08',     detail: 'Expertise: Verified'   },
+  'Skilled Migration Visa': { val: 'Points: 95/100', system: 'ANZSCO / NZQF',   detail: 'Priority Processing'   },
+  'Exchange Program':       { val: 'Credits: 60 ECTS',system: 'ERASMUS+ Standard',detail: 'Mobility Ready'      },
 };
 
 function _h(apiKey) {
@@ -174,4 +178,28 @@ async function process(apiKey, files, context) {
   };
 }
 
-module.exports = { process, chatFollowUp, redactPII };
+async function analyzeGaps(apiKey, fileIds, goal, targetCountry) {
+  const prompt =
+    `You are an expert international credential advisor specializing in ${targetCountry} requirements.\n\n` +
+    `TASK: Perform a complete DOCUMENT GAP ANALYSIS for a person applying for "${goal}" in "${targetCountry}".\n\n` +
+    `## DOCUMENTS DETECTED\n` +
+    `List each uploaded document, its type, and whether it appears valid/expired/incomplete.\n\n` +
+    `## REQUIRED DOCUMENTS (${targetCountry} Official Requirements)\n` +
+    `List ALL documents officially required for ${goal} in ${targetCountry} with their exact names.\n\n` +
+    `## GAPS FOUND\n` +
+    `For each missing or incomplete document provide:\n` +
+    `- Document Name\n` +
+    `- Why It Is Required\n` +
+    `- Where to Obtain It (official authority / website)\n` +
+    `- Estimated Processing Time\n\n` +
+    `## TOP 3 PRIORITY ACTIONS\n` +
+    `Ordered by urgency. Be specific and actionable.\n\n` +
+    `## ESTIMATED TOTAL TIMELINE\n` +
+    `Realistic completion timeline if the person starts today.\n\n` +
+    `Use official document names specific to ${targetCountry}. Be concise and practical.`;
+
+  const { chatId, content } = await _chatFirstTurn(apiKey, fileIds, prompt);
+  return { content, chatId };
+}
+
+module.exports = { process, chatFollowUp, analyzeGaps, redactPII };

@@ -8,6 +8,7 @@ const path       = require('path');
 const vaultService  = require('./services/vaultsage');
 const trustEngine   = require('./services/trustEngine');
 const ssiService    = require('./services/ssi');
+const store         = require('./services/db');
 
 dotenv.config();
 
@@ -27,7 +28,7 @@ app.use(express.static('public'));
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 30,
+  max: 60,
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, error: 'Too many requests, please wait.' },
@@ -38,17 +39,6 @@ const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 20 * 1024 * 1024, files: 10 },
 });
-
-// ── In-memory document store with TTL ───────────────────────────────────────
-const sharedDocs = new Map();
-const DOC_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
-
-setInterval(() => {
-  const now = Date.now();
-  for (const [id, doc] of sharedDocs) {
-    if (now - doc.createdAt > DOC_TTL_MS) sharedDocs.delete(id);
-  }
-}, 10 * 60 * 1000);
 
 // ── Routes ───────────────────────────────────────────────────────────────────
 
@@ -73,8 +63,8 @@ app.post('/api/trust-notary', upload.array('documents', 10), async (req, res) =>
     // 2. SSI: determine IAL from filenames
     const ssiResult = ssiService.verify(files.map(f => f.originalname));
 
-    // 3. Trust score
-    const trustInfo = trustEngine.calculateCredibility(ssiResult);
+    // 3. Trust score — calibrated with real VaultSage AI verdict
+    const trustInfo = trustEngine.calculateCredibility(ssiResult, analysis.advantage_analysis);
     const advantage = trustEngine.evaluateAdvantage(goal, trustInfo.score);
 
     // 4. Build share URLs
@@ -82,8 +72,8 @@ app.post('/api/trust-notary', upload.array('documents', 10), async (req, res) =>
     const proto = req.secure ? 'https' : 'http';
     const localShareLink = `${proto}://${host}/share/${analysis.docId}`;
 
-    // 5. Persist for SmartDrop
-    sharedDocs.set(analysis.docId, {
+    // 5. Persist for SmartDrop (survives restarts via db.js)
+    store.set(analysis.docId, {
       analysis,
       trustInfo,
       targetCountry,
@@ -112,9 +102,31 @@ app.get('/share/:docId', (req, res) => {
 });
 
 app.get('/api/share-data/:docId', (req, res) => {
-  const doc = sharedDocs.get(req.params.docId);
+  const doc = store.get(req.params.docId);
   if (!doc) return res.status(404).json({ success: false, error: 'Document not found or expired.' });
   res.json({ success: true, data: doc });
+});
+
+// Gap Advisor — AI-powered missing document analysis
+app.post('/api/gap-advisor', async (req, res) => {
+  try {
+    const { docId } = req.body;
+    if (!docId) return res.status(400).json({ success: false, error: 'Missing docId.' });
+
+    const doc = store.get(docId);
+    if (!doc) return res.status(404).json({ success: false, error: 'Session not found or expired.' });
+
+    const fileIds = doc.analysis?.vaultFileIds;
+    if (!fileIds || fileIds.length === 0)
+      return res.status(400).json({ success: false, error: 'No VaultSage file IDs in session.' });
+
+    console.log(`[GAP ADVISOR] ${doc.goal} / ${doc.targetCountry}`);
+    const { content } = await vaultService.analyzeGaps(VAULT_KEY, fileIds, doc.goal, doc.targetCountry);
+    res.json({ success: true, gaps: content });
+  } catch (err) {
+    console.error('[GAP ADVISOR ERROR]', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 // Real AI chat via VaultSage
@@ -123,7 +135,7 @@ app.post('/api/chat', async (req, res) => {
     const { docId, message } = req.body;
     if (!message) return res.status(400).json({ success: false, error: 'Missing message.' });
 
-    const doc = sharedDocs.get(docId);
+    const doc = store.get(docId);
     if (!doc) return res.status(404).json({ success: false, error: 'Document not found or expired.' });
     if (!doc.vaultChatId) return res.status(400).json({ success: false, error: 'No active VaultSage chat session.' });
 
