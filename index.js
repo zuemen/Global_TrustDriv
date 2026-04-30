@@ -17,8 +17,7 @@ const port = process.env.PORT || 4000;
 const VAULT_KEY = process.env.VAULTSAGE_API_KEY;
 
 if (!VAULT_KEY) {
-  console.error('[FATAL] VAULTSAGE_API_KEY is not set in .env');
-  process.exit(1);
+  console.warn('[WARN] VAULTSAGE_API_KEY is not set. VaultSage API routes may fail.');
 }
 
 // ── Middleware ───────────────────────────────────────────────────────────────
@@ -48,6 +47,9 @@ app.post('/api/trust-notary', upload.array('documents', 10), async (req, res) =>
     const files = req.files;
     const { targetCountry, goal } = req.body;
 
+    if (!VAULT_KEY) {
+      return res.status(500).json({ success: false, error: 'Missing VAULTSAGE_API_KEY on server.' });
+    }
     if (!files || files.length === 0) {
       return res.status(400).json({ success: false, error: 'No documents uploaded.' });
     }
@@ -69,7 +71,7 @@ app.post('/api/trust-notary', upload.array('documents', 10), async (req, res) =>
 
     // 4. Build share URLs
     const host = req.headers.host || `localhost:${port}`;
-    const proto = req.secure ? 'https' : 'http';
+    const proto = req.headers['x-forwarded-proto'] || (req.secure ? 'https' : 'http');
     const localShareLink = `${proto}://${host}/share/${analysis.docId}`;
 
     // 5. Persist for SmartDrop (survives restarts via db.js)
@@ -110,6 +112,10 @@ app.get('/api/share-data/:docId', (req, res) => {
 // Gap Advisor — AI-powered missing document analysis
 app.post('/api/gap-advisor', async (req, res) => {
   try {
+    if (!VAULT_KEY) {
+      return res.status(500).json({ success: false, error: 'Missing VAULTSAGE_API_KEY on server.' });
+    }
+
     const { docId } = req.body;
     if (!docId) return res.status(400).json({ success: false, error: 'Missing docId.' });
 
@@ -132,6 +138,10 @@ app.post('/api/gap-advisor', async (req, res) => {
 // Real AI chat via VaultSage
 app.post('/api/chat', async (req, res) => {
   try {
+    if (!VAULT_KEY) {
+      return res.status(500).json({ success: false, error: 'Missing VAULTSAGE_API_KEY on server.' });
+    }
+
     const { docId, message } = req.body;
     if (!message) return res.status(400).json({ success: false, error: 'Missing message.' });
 
@@ -148,10 +158,14 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
-// ── Start ────────────────────────────────────────────────────────────────────
-app.listen(port, () => {
-  console.log('\n====================================================');
-  console.log('  Global TrustDrive 7.0 + VaultSage AI — LIVE');
-  console.log(`  http://localhost:${port}`);
-  console.log('====================================================\n');
-});
+// ── Start / Export ───────────────────────────────────────────────────────────
+if (require.main === module) {
+  app.listen(port, () => {
+    console.log('\n====================================================');
+    console.log('  Global TrustDrive 7.0 + VaultSage AI — LIVE');
+    console.log(`  http://localhost:${port}`);
+    console.log('====================================================\n');
+  });
+}
+
+module.exports = app;
