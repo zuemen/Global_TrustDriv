@@ -16,6 +16,8 @@ const app  = express();
 const port = process.env.PORT || 4000;
 const VAULT_KEY = process.env.VAULTSAGE_API_KEY;
 
+app.set('trust proxy', 1);
+
 if (!VAULT_KEY) {
   console.warn('[WARN] VAULTSAGE_API_KEY is not set. VaultSage API routes may fail.');
 }
