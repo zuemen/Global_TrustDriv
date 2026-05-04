@@ -25,7 +25,12 @@ if (!VAULT_KEY) {
 // ── Middleware ───────────────────────────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Explicitly serve index.html for the root route to prevent 404s
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
