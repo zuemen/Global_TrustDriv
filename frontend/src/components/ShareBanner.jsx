@@ -1,5 +1,14 @@
 import { useI18n } from '../hooks/useI18n'
 
+function esc(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 export default function ShareBanner({ shareLink, vaultShareLink, result }) {
   const { t } = useI18n()
 
@@ -37,21 +46,21 @@ export default function ShareBanner({ shareLink, vaultShareLink, result }) {
       <div class="sub">Trust Passport · AI-Native Credential Certificate</div>
     </div>
     <div>
-      <div class="score">${trust?.score ?? '--'}</div>
-      <div class="level">${trust?.level ?? ''}</div>
+      <div class="score">${esc(trust?.score)}</div>
+      <div class="level">${esc(trust?.level)}</div>
     </div>
   </div>
   <h2>Identity Assurance Level</h2>
-  <p>IAL: ${trust?.ial ?? '--'} &nbsp;·&nbsp; ${analysis?.standard_info?.name ?? ''} (${analysis?.standard_info?.code ?? ''})</p>
+  <p>IAL: ${esc(trust?.ial)} &nbsp;·&nbsp; ${esc(analysis?.standard_info?.name)} (${esc(analysis?.standard_info?.code)})</p>
   <div class="stars">${'★'.repeat(adv.stars ?? 0)}${'☆'.repeat(5 - (adv.stars ?? 0))}</div>
-  <p>${adv.analysis ?? ''}</p>
+  <p>${esc(adv.analysis)}</p>
   <h2>VaultSage AI Deep Analysis</h2>
-  <pre>${analysis?.advantage_analysis ?? ''}</pre>
+  <pre>${esc(analysis?.advantage_analysis)}</pre>
   <h2>Standardized Metrics</h2>
-  <p><strong>${analysis?.converted_metrics?.val ?? ''}</strong> &nbsp;·&nbsp; ${analysis?.converted_metrics?.system ?? ''}</p>
-  <p>${analysis?.converted_metrics?.detail ?? ''}</p>
+  <p><strong>${esc(analysis?.converted_metrics?.val)}</strong> &nbsp;·&nbsp; ${esc(analysis?.converted_metrics?.system)}</p>
+  <p>${esc(analysis?.converted_metrics?.detail)}</p>
   <div class="footer">
-    Generated: ${new Date().toISOString()} &nbsp;·&nbsp; Document ID: ${analysis?.doc_id ?? ''}<br>
+    Generated: ${new Date().toISOString()} &nbsp;·&nbsp; Document ID: ${esc(analysis?.doc_id)}<br>
     Global TrustDrive v7.0 · Powered by VaultSage AI · #vaultsage<br>
     AI-generated for reference only. Official verification required for legal use.
   </div>

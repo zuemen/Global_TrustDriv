@@ -3,6 +3,7 @@ import os
 import time
 import threading
 from typing import Optional
+import atexit
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 STORE_FILE = os.path.join(DATA_DIR, "docs.json")
@@ -60,3 +61,16 @@ def cleanup():
             for k in stale:
                 del _store[k]
             _save()
+
+
+def _cleanup_loop():
+    while True:
+        time.sleep(10 * 60)  # every 10 minutes
+        try:
+            cleanup()
+        except Exception:
+            pass
+
+
+_cleaner = threading.Thread(target=_cleanup_loop, daemon=True)
+_cleaner.start()

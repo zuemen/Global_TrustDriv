@@ -19,9 +19,11 @@ if not VAULT_KEY:
 
 app = FastAPI(title="Global TrustDrive API", version="7.0.0")
 
+_ALLOWED_ORIGINS = [o.strip() for o in os.getenv("ALLOWED_ORIGINS", "*").split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -64,8 +66,8 @@ async def trust_notary(
     trust_info = trust_engine.calculate_credibility(ssi_result, analysis["advantage_analysis"])
     advantage  = trust_engine.evaluate_advantage(goal, trust_info["score"])
 
-    proto = "https" if request.url.scheme == "https" else "http"
-    host  = request.headers.get("host", f"localhost:{request.url.port or 8000}")
+    proto = "https" if request.headers.get("x-forwarded-proto") == "https" or request.url.scheme == "https" else "http"
+    host  = request.headers.get("host") or request.headers.get("x-forwarded-host") or f"localhost:{os.getenv('PORT', '8000')}"
     local_share_link = f"{proto}://{host}/share/{analysis['doc_id']}"
 
     db.set_doc(analysis["doc_id"], {
