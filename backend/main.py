@@ -128,15 +128,31 @@ async def ai_chat(body: ChatRequest):
 
 FRONTEND_DIST = os.path.join(os.path.dirname(__file__), "..", "frontend", "dist")
 
+def _index():
+    return FileResponse(os.path.join(FRONTEND_DIST, "index.html"))
+
 if os.path.isdir(FRONTEND_DIST):
+    # Bug fix: stacked decorators on FastAPI don't work reliably — use separate functions
+    @app.get("/", include_in_schema=False)
+    async def serve_root():
+        return _index()
+
+    @app.get("/share/{doc_id}", include_in_schema=False)
+    async def serve_share(doc_id: str):
+        return _index()
+
+    # Serve root-level assets (favicon, robots.txt, etc.)
+    @app.get("/{filename}", include_in_schema=False)
+    async def serve_static_file(filename: str):
+        file_path = os.path.join(FRONTEND_DIST, filename)
+        if os.path.isfile(file_path):
+            return FileResponse(file_path)
+        return _index()
+
+    # Mount /assets for JS/CSS chunks (must be last)
     assets_dir = os.path.join(FRONTEND_DIST, "assets")
     if os.path.isdir(assets_dir):
         app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
-
-    @app.get("/", include_in_schema=False)
-    @app.get("/share/{doc_id}", include_in_schema=False)
-    async def serve_frontend(doc_id: str = ""):
-        return FileResponse(os.path.join(FRONTEND_DIST, "index.html"))
 
 
 if __name__ == "__main__":
