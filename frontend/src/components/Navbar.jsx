@@ -40,6 +40,7 @@ export default function Navbar() {
           ].map(nav => (
             <button
               key={nav.label}
+              onClick={() => !nav.active && alert(`${nav.label} module is coming soon! This is part of our future roadmap for a complete Trust-as-a-Service ecosystem.`)}
               className={`text-[11px] font-black uppercase tracking-[0.2em] transition-all ${
                 nav.active ? 'text-vault-accent' : 'text-slate-500 hover:text-slate-300'
               }`}
