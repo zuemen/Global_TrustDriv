@@ -91,12 +91,18 @@ app.post('/api/trust-notary', upload.array('documents', 10), async (req, res) =>
       createdAt: Date.now(),
     });
 
+    // 5. Build response with snake_case for frontend
+    const responseAnalysis = {
+      ...analysis,
+      doc_id: analysis.docId,
+    };
+
     res.json({
       success: true,
-      trustInfo: { ...trustInfo, advantage },
-      analysis,
-      shareLink: localShareLink,
-      vaultShareLink: analysis.vaultShareUrl,
+      trust_info: { ...trustInfo, advantage },
+      analysis: responseAnalysis,
+      share_link: localShareLink,
+      vault_share_link: analysis.vaultShareUrl,
     });
 
   } catch (err) {
@@ -113,7 +119,18 @@ app.get('/share/:docId', (req, res) => {
 app.get('/api/share-data/:docId', (req, res) => {
   const doc = store.get(req.params.docId);
   if (!doc) return res.status(404).json({ success: false, error: 'Document not found or expired.' });
-  res.json({ success: true, data: doc });
+  
+  // Return with snake_case for frontend compatibility
+  res.json({ 
+    success: true, 
+    data: {
+      analysis: doc.analysis,
+      trust_info: doc.trustInfo,
+      target_country: doc.targetCountry,
+      goal: doc.goal,
+      created_at: Math.floor(doc.createdAt / 1000), // matching SharePage's expected seconds
+    }
+  });
 });
 
 // Gap Advisor — AI-powered missing document analysis
@@ -123,10 +140,11 @@ app.post('/api/gap-advisor', async (req, res) => {
       return res.status(500).json({ success: false, error: 'Missing VAULTSAGE_API_KEY on server.' });
     }
 
-    const { docId } = req.body;
-    if (!docId) return res.status(400).json({ success: false, error: 'Missing docId.' });
+    const { docId, doc_id } = req.body;
+    const targetId = docId || doc_id;
+    if (!targetId) return res.status(400).json({ success: false, error: 'Missing docId.' });
 
-    const doc = store.get(docId);
+    const doc = store.get(targetId);
     if (!doc) return res.status(404).json({ success: false, error: 'Session not found or expired.' });
 
     const fileIds = doc.analysis?.vaultFileIds;
@@ -149,10 +167,11 @@ app.post('/api/chat', async (req, res) => {
       return res.status(500).json({ success: false, error: 'Missing VAULTSAGE_API_KEY on server.' });
     }
 
-    const { docId, message } = req.body;
+    const { docId, doc_id, message } = req.body;
+    const targetId = docId || doc_id;
     if (!message) return res.status(400).json({ success: false, error: 'Missing message.' });
 
-    const doc = store.get(docId);
+    const doc = store.get(targetId);
     if (!doc) return res.status(404).json({ success: false, error: 'Document not found or expired.' });
     if (!doc.vaultChatId) return res.status(400).json({ success: false, error: 'No active VaultSage chat session.' });
 
@@ -167,10 +186,11 @@ app.post('/api/chat', async (req, res) => {
 
 // ── Start / Export ───────────────────────────────────────────────────────────
 if (require.main === module) {
-  app.listen(port, () => {
+  app.listen(port, '0.0.0.0', () => {
     console.log('\n====================================================');
     console.log('  Global TrustDrive 7.0 + VaultSage AI — LIVE');
-    console.log(`  http://localhost:${port}`);
+    console.log(`  Local:   http://localhost:${port}`);
+    console.log(`  Network: http://0.0.0.0:${port}`);
     console.log('====================================================\n');
   });
 }
