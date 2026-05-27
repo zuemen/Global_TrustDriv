@@ -82,7 +82,7 @@ app.post('/api/trust-notary', upload.array('documents', 10), async (req, res) =>
     const localShareLink = `${proto}://${host}/share/${analysis.docId}`;
 
     // 5. Persist for SmartDrop (survives restarts via db.js)
-    store.set(analysis.docId, {
+    await store.set(analysis.docId, {
       analysis,
       trustInfo,
       targetCountry,
@@ -116,8 +116,8 @@ app.get('/share/:docId', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'share.html'));
 });
 
-app.get('/api/share-data/:docId', (req, res) => {
-  const doc = store.get(req.params.docId);
+app.get('/api/share-data/:docId', async (req, res) => {
+  const doc = await store.get(req.params.docId);
   if (!doc) return res.status(404).json({ success: false, error: 'Document not found or expired.' });
   
   // Return with snake_case for frontend compatibility
@@ -144,7 +144,7 @@ app.post('/api/gap-advisor', async (req, res) => {
     const targetId = docId || doc_id;
     if (!targetId) return res.status(400).json({ success: false, error: 'Missing docId.' });
 
-    const doc = store.get(targetId);
+    const doc = await store.get(targetId);
     if (!doc) return res.status(404).json({ success: false, error: 'Session not found or expired.' });
 
     const fileIds = doc.analysis?.vaultFileIds;
@@ -171,7 +171,7 @@ app.post('/api/chat', async (req, res) => {
     const targetId = docId || doc_id;
     if (!message) return res.status(400).json({ success: false, error: 'Missing message.' });
 
-    const doc = store.get(targetId);
+    const doc = await store.get(targetId);
     if (!doc) return res.status(404).json({ success: false, error: 'Document not found or expired.' });
     if (!doc.vaultChatId) return res.status(400).json({ success: false, error: 'No active VaultSage chat session.' });
 
@@ -196,3 +196,4 @@ if (require.main === module) {
 }
 
 module.exports = app;
+

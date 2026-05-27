@@ -1,67 +1,42 @@
-const fs = require('fs');
-const path = require('path');
+const { kv } = require('@vercel/kv');
 
-const DATA_DIR = path.join(__dirname, '..', 'data');
-const STORE_FILE = path.join(DATA_DIR, 'docs.json');
-const DOC_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+/**
+ * Global TrustDrive 7.0 Persistence Layer
+ * Using Vercel KV (Redis) to survive cold starts.
+ * docId serves as the key.
+ */
 
-let _store = {};
-
-function _load() {
-  try {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-    _store = JSON.parse(fs.readFileSync(STORE_FILE, 'utf8'));
-  } catch {
-    _store = {};
-  }
-}
-
-function _save() {
-  try {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-    fs.writeFileSync(STORE_FILE, JSON.stringify(_store, null, 2), 'utf8');
-  } catch (e) {
-    console.error('[DB] Write error:', e.message);
-  }
-}
-
-_load();
+const DOC_TTL_SECONDS = 7 * 24 * 60 * 60; // 7 days in seconds
 
 const store = {
-  set(docId, doc) {
-    _store[docId] = { ...doc, createdAt: doc.createdAt || Date.now() };
-    _save();
+  async set(docId, doc) {
+    try {
+      const data = { ...doc, createdAt: doc.createdAt || Date.now() };
+      await kv.set(docId, data, { ex: DOC_TTL_SECONDS });
+      console.log(`[DB] Saved ${docId}`);
+    } catch (e) {
+      console.error(`[DB] Error setting ${docId}:`, e.message);
+    }
   },
 
-  get(docId) {
-    const doc = _store[docId];
-    if (!doc) return null;
-    if (Date.now() - doc.createdAt > DOC_TTL_MS) {
-      delete _store[docId];
-      _save();
+  async get(docId) {
+    try {
+      const doc = await kv.get(docId);
+      if (!doc) return null;
+      return doc;
+    } catch (e) {
+      console.error(`[DB] Error getting ${docId}:`, e.message);
       return null;
     }
-    return doc;
   },
 
-  delete(docId) {
-    delete _store[docId];
-    _save();
-  },
-
-  cleanup() {
-    const cutoff = Date.now() - DOC_TTL_MS;
-    let changed = false;
-    for (const [id, doc] of Object.entries(_store)) {
-      if (doc.createdAt < cutoff) {
-        delete _store[id];
-        changed = true;
-      }
+  async delete(docId) {
+    try {
+      await kv.del(docId);
+    } catch (e) {
+      console.error(`[DB] Error deleting ${docId}:`, e.message);
     }
-    if (changed) _save();
-  },
+  }
 };
-
-setInterval(() => store.cleanup(), 10 * 60 * 1000);
 
 module.exports = store;
