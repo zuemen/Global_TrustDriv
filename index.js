@@ -25,6 +25,9 @@ if (!VAULT_KEY) {
 // ── Middleware ───────────────────────────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
+
+app.get('/favicon.ico', (req, res) => res.status(204).end());
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Explicitly serve index.html for the root route to prevent 404s
@@ -69,8 +72,12 @@ app.post('/api/trust-notary', upload.array('documents', 10), async (req, res) =>
     // 1. VaultSage: upload → process → AI analyse → share
     const analysis = await vaultService.process(VAULT_KEY, files, { targetCountry, goal });
 
-    // 2. SSI: determine IAL from filenames
-    const ssiResult = ssiService.verify(files.map(f => f.originalname));
+    // 2. SSI: SHA-256 hash + Sepolia anchoring
+    const ssiResult = await ssiService.verify({
+      filenames:    files.map(f => f.originalname),
+      fileContents: files.map(f => f.buffer),
+      docId:        analysis.docId,
+    });
 
     // 3. Trust score — calibrated with real VaultSage AI verdict
     const trustInfo = trustEngine.calculateCredibility(ssiResult, analysis.advantage_analysis);
@@ -103,6 +110,13 @@ app.post('/api/trust-notary', upload.array('documents', 10), async (req, res) =>
       analysis: responseAnalysis,
       share_link: localShareLink,
       vault_share_link: analysis.vaultShareUrl,
+      blockchain: {
+        credential_hash:  ssiResult.credential_hash,
+        tx_hash:          ssiResult.tx_hash,
+        block_number:     ssiResult.block_number,
+        sepolia_explorer: ssiResult.sepolia_explorer,
+        network:          ssiResult.network,
+      },
     });
 
   } catch (err) {
@@ -111,24 +125,47 @@ app.post('/api/trust-notary', upload.array('documents', 10), async (req, res) =>
   }
 });
 
-// SmartDrop viewer
+// SmartDrop viewer — serve React SPA (handles /share/:docId via client-side router)
 app.get('/share/:docId', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'share.html'));
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+const DEMO_DOC = {
+  analysis: {
+    docId: 'VS-GTD-DEMO-TCIW', doc_id: 'VS-GTD-DEMO-TCIW',
+    standard_info:      { name: 'UNESCO WRL / ECTS', code: 'EDU-WRL-2026' },
+    converted_metrics:  { val: '3.92 / 4.0', system: 'WES Equivalent', detail: 'Percentile: Top 5%' },
+    advantage_analysis: '[AI CERTIFIED VERDICT: APPROVED]\n\n1. DOCUMENT SUMMARY: Academic transcript and degree certificate from National Chengchi University (NCCU).\n2. COMPLIANCE CHECK: Fully compliant with German university admission requirements.\n3. STRENGTHS: Verified GPA 3.8/4.0, 128 ECTS-equivalent credits, recognized institution.\n4. GAPS: None identified.\n5. VERDICT: APPROVED — All requirements satisfied.',
+    redacted_credentials: [
+      { name: '成績單_NCCU_Transcript.pdf', content: '[VaultSage AI Secured]\nStatus: Authenticated | IAL Level: 3' },
+      { name: 'Degree_Certificate_NCCU.pdf', content: '[VaultSage AI Secured]\nStatus: Authenticated | IAL Level: 3' },
+    ],
+    vaultFileIds: ['demo-1', 'demo-2'], vaultChatId: 'demo-chat-TCIW',
+  },
+  trust_info:     { score: 87, ial: 'EDU_VERIFIED', ialTier: 2, issuer: 'Global Trust Registry', signatureValid: true },
+  target_country: 'Germany',
+  goal:           'University Study',
+  created_at:     Math.floor(Date.now() / 1000) + 86400 * 365,
+};
+
 app.get('/api/share-data/:docId', async (req, res) => {
-  const doc = await store.get(req.params.docId);
-  if (!doc) return res.status(404).json({ success: false, error: 'Document not found or expired.' });
-  
+  const { docId } = req.params;
+  const doc = await store.get(docId);
+
+  if (!doc) {
+    if (docId === 'VS-GTD-DEMO-TCIW') return res.json({ success: true, data: DEMO_DOC });
+    return res.status(404).json({ success: false, error: 'Document not found or expired.' });
+  }
+
   // Return with snake_case for frontend compatibility
-  res.json({ 
-    success: true, 
+  res.json({
+    success: true,
     data: {
       analysis: doc.analysis,
       trust_info: doc.trustInfo,
       target_country: doc.targetCountry,
       goal: doc.goal,
-      created_at: Math.floor(doc.createdAt / 1000), // matching SharePage's expected seconds
+      created_at: Math.floor(doc.createdAt / 1000),
     }
   });
 });
@@ -171,7 +208,10 @@ app.post('/api/chat', async (req, res) => {
     const targetId = docId || doc_id;
     if (!message) return res.status(400).json({ success: false, error: 'Missing message.' });
 
-    const doc = await store.get(targetId);
+    let doc = await store.get(targetId);
+    if (!doc && targetId === 'VS-GTD-DEMO-TCIW') {
+      doc = { vaultChatId: 'demo-chat-TCIW', goal: 'University Study', targetCountry: 'Germany' };
+    }
     if (!doc) return res.status(404).json({ success: false, error: 'Document not found or expired.' });
     if (!doc.vaultChatId) return res.status(400).json({ success: false, error: 'No active VaultSage chat session.' });
 
