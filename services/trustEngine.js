@@ -10,10 +10,15 @@ const IAL_SCORES = {
 const trustEngine = {
   calculateCredibility(ssiResult, aiVerdict = '') {
     let score = 0;
-    if (ssiResult.signatureValid) score += 30;
-    if (ssiResult.didResolved)    score += 10;
-    score += IAL_SCORES[ssiResult.ial] || 10;
-    score += Math.min((ssiResult.docCount - 1) * 5, 10);
+    const signatureValid = Boolean(ssiResult.signatureValid ?? ssiResult.signature_valid);
+    const didResolved = Boolean(ssiResult.didResolved ?? ssiResult.did_resolved);
+    const docCount = Number(ssiResult.doc_count ?? ssiResult.docCount ?? 1);
+    const ial = ssiResult.ial ?? 'MYDATA_LIGHT';
+
+    if (signatureValid) score += 30;
+    if (didResolved) score += 10;
+    score += IAL_SCORES[ial] || 10;
+    score += Math.min(Math.max(docCount - 1, 0) * 5, 10);
 
     // Calibrate with actual VaultSage AI verdict
     if (/\bAPPROVED\b/i.test(aiVerdict))          score = Math.min(score + 8, 100);
@@ -26,7 +31,7 @@ const trustEngine = {
       score >= 75 ? 'EAL4 Institutional' :
       score >= 60 ? 'EAL2 Verified' :
                     'Provisional';
-    return { score, level, ial: ssiResult.ial };
+    return { score, level, ial };
   },
 
   evaluateAdvantage(goal, score) {
