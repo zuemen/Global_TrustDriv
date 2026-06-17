@@ -28,11 +28,15 @@ app.use(express.json());
 
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 
-app.use(express.static(path.join(__dirname, 'public')));
+const FRONTEND_DIST = path.join(__dirname, 'frontend', 'dist');
+const PUBLIC_DIR = path.join(__dirname, 'public');
+const STATIC_ROOT = require('fs').existsSync(FRONTEND_DIST) ? FRONTEND_DIST : PUBLIC_DIR;
+
+app.use(express.static(STATIC_ROOT));
 
 // Explicitly serve index.html for the root route to prevent 404s
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(STATIC_ROOT, 'index.html'));
 });
 
 const limiter = rateLimit({
@@ -127,7 +131,7 @@ app.post('/api/trust-notary', upload.array('documents', 10), async (req, res) =>
 
 // SmartDrop viewer — serve React SPA (handles /share/:docId via client-side router)
 app.get('/share/:docId', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(STATIC_ROOT, 'index.html'));
 });
 
 const DEMO_DOC = {
