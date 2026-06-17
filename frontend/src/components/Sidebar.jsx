@@ -2,121 +2,144 @@ import { useRef } from 'react'
 import { useI18n } from '../hooks/useI18n'
 
 const JURISDICTIONS = [
-  { value: 'USA',         label: 'United States (Standard)' },
-  { value: 'Germany',     label: 'Germany (EU GDPR)' },
-  { value: 'Singapore',   label: 'Singapore (MAS)' },
-  { value: 'UK',          label: 'United Kingdom (FCA)' },
-  { value: 'Taiwan',      label: 'Taiwan (FSC)' },
-  { value: 'South Korea', label: 'South Korea (FSS)' },
-  { value: 'Japan',       label: 'Japan (FSA)' },
-  { value: 'Canada',      label: 'Canada (IRCC)' },
-  { value: 'Australia',   label: 'Australia (DIBP)' },
+  { value: 'USA', label: 'United States' },
+  { value: 'Germany', label: 'Germany' },
+  { value: 'Singapore', label: 'Singapore' },
+  { value: 'UK', label: 'United Kingdom' },
+  { value: 'Taiwan', label: 'Taiwan' },
+  { value: 'South Korea', label: 'South Korea' },
+  { value: 'Japan', label: 'Japan' },
+  { value: 'Canada', label: 'Canada' },
+  { value: 'Australia', label: 'Australia' },
 ]
 
 const GOALS = [
-  { value: 'University Study',       label: '🎓 Academic Admission' },
-  { value: 'Employment',             label: '💼 Professional Work Pass' },
-  { value: 'Healthcare License',     label: '🩺 Medical Practice' },
-  { value: 'Digital Nomad Visa',     label: '🌐 Global Mobility' },
-  { value: 'Talent Pass',            label: '⭐ Talent Pass' },
-  { value: 'Skilled Migration Visa', label: '✈️ Skilled Migration' },
-  { value: 'Exchange Program',       label: '🔄 Exchange Program' },
-  { value: 'Banking Setup',          label: '🏦 Banking Setup' },
-]
-
-const STEPS = [
-  { id: 'upload',  label: 'stepUpload'  },
-  { id: 'process', label: 'stepProcess' },
-  { id: 'analyze', label: 'stepAnalyze' },
-  { id: 'report',  label: 'stepReport'  },
+  { value: 'University Study', label: 'University Study' },
+  { value: 'Employment', label: 'Employment' },
+  { value: 'Healthcare License', label: 'Healthcare License' },
+  { value: 'Digital Nomad Visa', label: 'Digital Nomad Visa' },
+  { value: 'Talent Pass', label: 'Talent Pass' },
+  { value: 'Skilled Migration Visa', label: 'Skilled Migration Visa' },
+  { value: 'Exchange Program', label: 'Exchange Program' },
+  { value: 'Banking Setup', label: 'Banking Setup' },
 ]
 
 const DEMOS = [
-  { key: 'Study',  emoji: '🎓', labelKey: 'demoStudy',  subKey: '3 ASSETS · MULTI-DOC AI'  },
-  { key: 'Career', emoji: '💼', labelKey: 'demoCareer', subKey: '2 ASSETS · PII REDACTION' },
-  { key: 'Taiwan', emoji: '🇹🇼', labelKey: 'demoTaiwan', subKey: '3 ASSETS · NCCU · CTBC'   },
-  { key: 'Korea',  emoji: '🇰🇷', labelKey: 'demoKorea',  subKey: '2 ASSETS · KAKAO · NTS'   },
+  { key: 'Study', title: 'Academic Pack', detail: '3 files, study visa flow' },
+  { key: 'Career', title: 'Employment Pack', detail: '2 files, career verification' },
+  { key: 'Taiwan', title: 'Taiwan Pack', detail: 'NCCU and bank proof' },
+  { key: 'Korea', title: 'Korea Pack', detail: 'Employment and tax proof' },
+]
+
+const STEPS = [
+  { id: 'upload', label: 'Intake' },
+  { id: 'process', label: 'Processing' },
+  { id: 'analyze', label: 'Analysis' },
+  { id: 'report', label: 'Report' },
 ]
 
 export default function Sidebar({
-  jurisdiction, setJurisdiction,
-  goal, setGoal,
-  fileLabel, onFilesChange, onDrop,
-  onSubmit, onDemo,
-  loading, activeStep,
+  jurisdiction,
+  setJurisdiction,
+  goal,
+  setGoal,
+  fileLabel,
+  onFilesChange,
+  onDrop,
+  onSubmit,
+  onDemo,
+  loading,
+  activeStep,
 }) {
   const { t } = useI18n()
   const inputRef = useRef()
 
-  const stepState = (id) => {
-    if (!activeStep) return 'idle'
-    const order = ['upload', 'process', 'analyze', 'report']
-    const active = order.indexOf(activeStep)
-    const idx    = order.indexOf(id)
-    if (idx < active)  return 'done'
-    if (idx === active) return 'active'
-    return 'pending'
-  }
+  const stepIndex = STEPS.findIndex((step) => step.id === activeStep)
 
   return (
-    <div className="xl:col-span-3 space-y-6">
-      {/* Settings */}
-      <div className="glass rounded-[2rem] p-8 shadow-2xl">
-        <h2 className="text-[11px] font-black text-slate-500 uppercase tracking-[0.4em] mb-8 flex items-center gap-3">
-          <span className="w-1.5 h-5 bg-vault-accent rounded-full" />
-          {t('scenarioSetup')}
-        </h2>
-        <div className="space-y-6">
+    <aside className="space-y-6 xl:col-span-3">
+      <section className="rounded-[1.75rem] border border-white/6 bg-slate-900/70 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
+        <div className="mb-6 flex items-center gap-3">
+          <span className="h-10 w-1.5 rounded-full bg-cyan-400" />
           <div>
-            <label className="block text-[10px] text-slate-400 font-black mb-3 uppercase tracking-widest">
+            <p className="text-[10px] font-black uppercase tracking-[0.32em] text-slate-500">
+              {t('scenarioSetup')}
+            </p>
+            <h2 className="mt-1 text-base font-black text-white">
+              Configure case
+            </h2>
+          </div>
+        </div>
+
+        <div className="space-y-5">
+          <div>
+            <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
               {t('jurisdiction')}
             </label>
             <select
               value={jurisdiction}
-              onChange={e => setJurisdiction(e.target.value)}
-              className="w-full bg-slate-900/50 border border-slate-700/50 rounded-2xl px-4 py-4 text-sm text-white focus:ring-2 focus:ring-vault-accent outline-none cursor-pointer hover:bg-slate-900 transition-all"
+              onChange={(e) => setJurisdiction(e.target.value)}
+              className="w-full rounded-2xl border border-white/8 bg-slate-950/90 px-4 py-4 text-sm text-white outline-none transition focus:border-cyan-400/70"
             >
-              {JURISDICTIONS.map(j => (
-                <option key={j.value} value={j.value}>{j.label}</option>
+              {JURISDICTIONS.map((item) => (
+                <option key={item.value} value={item.value}>
+                  {item.label}
+                </option>
               ))}
             </select>
           </div>
+
           <div>
-            <label className="block text-[10px] text-slate-400 font-black mb-3 uppercase tracking-widest">
+            <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
               {t('objective')}
             </label>
             <select
               value={goal}
-              onChange={e => setGoal(e.target.value)}
-              className="w-full bg-slate-900/50 border border-slate-700/50 rounded-2xl px-4 py-4 text-sm text-white focus:ring-2 focus:ring-vault-accent outline-none cursor-pointer hover:bg-slate-900 transition-all"
+              onChange={(e) => setGoal(e.target.value)}
+              className="w-full rounded-2xl border border-white/8 bg-slate-950/90 px-4 py-4 text-sm text-white outline-none transition focus:border-cyan-400/70"
             >
-              {GOALS.map(g => (
-                <option key={g.value} value={g.value}>{g.label}</option>
+              {GOALS.map((item) => (
+                <option key={item.value} value={item.value}>
+                  {item.label}
+                </option>
               ))}
             </select>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Upload */}
-      <div className="glass rounded-[2rem] p-8 shadow-2xl">
-        <h2 className="text-[11px] font-black text-slate-500 uppercase tracking-[0.4em] mb-6 flex items-center gap-3">
-          <span className="w-1.5 h-5 bg-vault-safe rounded-full" />
-          {t('secureIntake')}
-        </h2>
+      <section className="rounded-[1.75rem] border border-cyan-400/14 bg-gradient-to-b from-cyan-400/10 to-slate-900/80 p-6 shadow-2xl shadow-cyan-950/10 backdrop-blur-xl">
+        <div className="mb-5 flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.32em] text-cyan-300/70">
+              {t('secureIntake')}
+            </p>
+            <h3 className="mt-1 text-base font-black text-white">
+              Upload set
+            </h3>
+          </div>
+          <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-200">
+            Ready
+          </span>
+        </div>
+
         <div
           onClick={() => inputRef.current?.click()}
-          onDragOver={e => e.preventDefault()}
+          onDragOver={(e) => e.preventDefault()}
           onDrop={onDrop}
-          className="border-2 border-dashed border-slate-700/50 hover:border-vault-accent hover:bg-vault-accent/5 rounded-[1.5rem] p-8 text-center cursor-pointer transition-all duration-500 group"
+          className="group cursor-pointer rounded-[1.5rem] border border-dashed border-white/12 bg-slate-950/60 p-6 text-center transition hover:border-cyan-400/60 hover:bg-cyan-400/6"
         >
-          <div className="w-14 h-14 bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 group-hover:rotate-6 transition-all shadow-xl">
-            <svg className="w-7 h-7 text-slate-400 group-hover:text-vault-accent transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/6 shadow-inner">
+            <svg className="h-7 w-7 text-slate-400 transition group-hover:text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M12 12v9m0-9l-3 3m3-3l3 3" />
             </svg>
           </div>
-          <p className="text-sm text-slate-300 font-bold mb-1">{fileLabel || t('uploadDocs')}</p>
-          <p className="text-[9px] text-slate-500 uppercase tracking-tighter">{t('uploadHint')}</p>
+          <p className="text-sm font-bold text-white">
+            {fileLabel || t('uploadDocs')}
+          </p>
+          <p className="mt-2 text-[11px] leading-5 text-slate-500">
+            {t('uploadHint')}
+          </p>
           <input
             ref={inputRef}
             type="file"
@@ -130,57 +153,74 @@ export default function Sidebar({
         <button
           onClick={onSubmit}
           disabled={loading}
-          className="w-full mt-6 bg-gradient-to-r from-vault-accent to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-black py-5 rounded-2xl shadow-2xl shadow-vault-accent/30 transition-all duration-500 active:scale-95 uppercase tracking-[0.2em] text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+          className="mt-5 inline-flex w-full items-center justify-center rounded-2xl bg-cyan-400 px-5 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-slate-950 shadow-lg shadow-cyan-500/20 transition hover:bg-cyan-300 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading ? t('executingBtn') : t('executeBtn')}
         </button>
 
-        {/* Progress */}
         {loading && (
           <div className="mt-6 space-y-3">
-            {STEPS.map(s => {
-              const state = stepState(s.id)
+            {STEPS.map((step, index) => {
+              const state = index < stepIndex ? 'done' : index === stepIndex ? 'active' : 'pending'
               return (
-                <div key={s.id} className={`flex items-center gap-3 text-xs transition-colors ${
-                  state === 'active' ? 'text-vault-accent' :
-                  state === 'done'   ? 'text-vault-safe' : 'text-slate-600'
-                }`}>
-                  <span className={`w-5 h-5 rounded-full border flex items-center justify-center text-[9px] transition-all ${
-                    state === 'active' ? 'border-vault-accent bg-vault-accent/20' :
-                    state === 'done'   ? 'border-vault-safe bg-vault-safe/20 text-vault-safe' :
-                    'border-slate-700'
-                  }`}>
-                    {state === 'done' ? '✓' : STEPS.indexOf(s) + 1}
+                <div key={step.id} className="flex items-center gap-3">
+                  <span
+                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-[10px] font-black ${
+                      state === 'done'
+                        ? 'border-emerald-400/50 bg-emerald-400/10 text-emerald-300'
+                        : state === 'active'
+                          ? 'border-cyan-400/50 bg-cyan-400/10 text-cyan-200'
+                          : 'border-white/10 bg-white/4 text-slate-500'
+                    }`}
+                  >
+                    {index + 1}
                   </span>
-                  {t(s.label)}
+                  <div className="min-w-0">
+                    <p className={`text-sm font-bold ${state === 'pending' ? 'text-slate-500' : 'text-white'}`}>
+                      {step.label}
+                    </p>
+                    <p className="text-[10px] uppercase tracking-[0.18em] text-slate-500">
+                      {state}
+                    </p>
+                  </div>
                 </div>
               )
             })}
           </div>
         )}
-      </div>
+      </section>
 
-      {/* Demos */}
-      <div className="space-y-3">
-        <h3 className="text-[10px] font-black text-slate-600 uppercase tracking-[0.4em] px-4">
-          {t('instantDemos')}
-        </h3>
-        <div className="grid grid-cols-1 gap-3">
-          {DEMOS.map(d => (
+      <section className="rounded-[1.75rem] border border-white/6 bg-slate-900/70 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
+        <div className="mb-4">
+          <p className="text-[10px] font-black uppercase tracking-[0.32em] text-slate-500">
+            {t('instantDemos')}
+          </p>
+          <h3 className="mt-1 text-base font-black text-white">
+            Load scenario
+          </h3>
+        </div>
+
+        <div className="grid gap-3">
+          {DEMOS.map((demo) => (
             <button
-              key={d.key}
-              onClick={() => onDemo(d.key)}
-              className="flex items-center gap-4 px-6 py-4 bg-slate-800/30 hover:bg-slate-800/60 border border-slate-700/30 hover:border-vault-accent/30 rounded-[1.5rem] transition-all group"
+              key={demo.key}
+              type="button"
+              onClick={() => onDemo(demo.key)}
+              className="group flex items-start gap-4 rounded-[1.25rem] border border-white/8 bg-white/[0.03] px-4 py-4 text-left transition hover:border-cyan-400/30 hover:bg-cyan-400/6"
             >
-              <span className="text-2xl group-hover:scale-125 group-hover:rotate-12 transition-transform">{d.emoji}</span>
-              <div className="text-left">
-                <p className="text-xs font-black text-white uppercase tracking-wider">{t(d.labelKey)}</p>
-                <p className="text-[9px] text-slate-500 uppercase font-bold">{d.subKey}</p>
+              <span className="mt-1 h-3 w-3 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.8)]" />
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-white transition group-hover:text-cyan-100">
+                  {demo.title}
+                </p>
+                <p className="mt-1 text-[11px] leading-5 text-slate-500">
+                  {demo.detail}
+                </p>
               </div>
             </button>
           ))}
         </div>
-      </div>
-    </div>
+      </section>
+    </aside>
   )
 }

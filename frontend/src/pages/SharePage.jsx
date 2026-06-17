@@ -1,98 +1,133 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { QRCodeSVG } from 'qrcode.react'
 
-function ChatMessage({ msg }) {
+function ChatBubble({ msg }) {
   if (msg.role === 'user') {
     return (
       <div className="flex justify-end">
-        <div className="bg-vault-accent text-slate-900 font-medium text-sm p-3 rounded-2xl rounded-tr-sm max-w-[80%]">
+        <div className="max-w-[85%] rounded-2xl rounded-tr-md bg-cyan-400 px-4 py-3 text-sm font-medium text-slate-950">
           {msg.text}
         </div>
       </div>
     )
   }
+
   if (msg.role === 'error') {
     return (
-      <div className="bg-red-900/40 text-red-400 text-sm p-3 rounded-2xl border border-red-500/20">
+      <div className="rounded-2xl border border-red-500/20 bg-red-950/40 px-4 py-3 text-sm text-red-300">
         {msg.text}
       </div>
     )
   }
+
   return (
-    <div className="bg-slate-700/60 text-slate-200 text-sm p-3 rounded-2xl rounded-tl-sm max-w-[90%] whitespace-pre-wrap">
+    <div className="max-w-[90%] rounded-2xl rounded-tl-md border border-white/6 bg-white/[0.04] px-4 py-3 text-sm leading-7 text-slate-200">
       {msg.text}
     </div>
   )
 }
 
+function StatCard({ label, value, hint }) {
+  return (
+    <div className="rounded-[1.25rem] border border-white/6 bg-white/[0.03] px-4 py-4">
+      <p className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
+        {label}
+      </p>
+      <p className="mt-2 text-lg font-black tracking-tight text-white">
+        {value}
+      </p>
+      {hint && <p className="mt-1 text-xs leading-6 text-slate-500">{hint}</p>}
+    </div>
+  )
+}
+
 export default function SharePage() {
-  const { docId }                  = useParams()
-  const [docData,  setDocData]     = useState(null)
-  const [notFound, setNotFound]    = useState(false)
-  const [messages, setMessages]    = useState([
-    { role: 'ai', text: "Hello! I'm the VaultSage AI assistant for this SmartDrop. I've analyzed the uploaded credentials — ask me anything about compliance, next steps, or document details." }
+  const { docId } = useParams()
+  const [docData, setDocData] = useState(null)
+  const [notFound, setNotFound] = useState(false)
+  const [messages, setMessages] = useState([
+    {
+      role: 'ai',
+      text: "This shared report is ready. Ask about compliance, missing documents, or next steps.",
+    },
   ])
-  const [input,    setInput]       = useState('')
-  const [chatBusy, setChatBusy]    = useState(false)
-  const [timeLeft, setTimeLeft]    = useState('')
-  const chatBoxRef                 = useRef()
+  const [input, setInput] = useState('')
+  const [chatBusy, setChatBusy] = useState(false)
+  const [timeLeft, setTimeLeft] = useState('')
+  const chatBoxRef = useRef()
 
   useEffect(() => {
     fetch(`/api/share-data/${docId}`)
-      .then(r => r.json())
-      .then(d => {
-        if (d.success) setDocData(d.data)
-        else           setNotFound(true)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) setDocData(data.data)
+        else setNotFound(true)
       })
       .catch(() => setNotFound(true))
   }, [docId])
 
-  // Expiry countdown
   useEffect(() => {
     if (!docData?.created_at) return
+
     const tick = () => {
       const expiry = (docData.created_at + 7 * 24 * 3600) * 1000
-      const rem    = expiry - Date.now()
-      if (rem <= 0) { setTimeLeft('Expired'); return }
-      const d = Math.floor(rem / 86400000)
-      const h = Math.floor((rem % 86400000) / 3600000)
-      setTimeLeft(`Expires in ${d}d ${h}h`)
+      const remaining = expiry - Date.now()
+      if (remaining <= 0) {
+        setTimeLeft('Expired')
+        return
+      }
+      const days = Math.floor(remaining / 86400000)
+      const hours = Math.floor((remaining % 86400000) / 3600000)
+      setTimeLeft(`Expires in ${days}d ${hours}h`)
     }
+
     tick()
-    const id = setInterval(tick, 60000)
-    return () => clearInterval(id)
+    const timer = setInterval(tick, 60000)
+    return () => clearInterval(timer)
   }, [docData])
 
   useEffect(() => {
     chatBoxRef.current?.scrollTo({ top: chatBoxRef.current.scrollHeight, behavior: 'smooth' })
   }, [messages])
 
+  const analysis = docData?.analysis ?? {}
+  const trust = docData?.trust_info ?? {}
+  const advantage = trust.advantage ?? {}
+  const metrics = analysis.converted_metrics ?? {}
+  const stdInfo = analysis.standard_info ?? {}
+  const redacted = useMemo(
+    () => (analysis.redacted_credentials ?? []).map((item) => `[FILE: ${item.name}]\n${item.content}`).join('\n\n---\n\n'),
+    [analysis.redacted_credentials],
+  )
+  const stars = Math.max(0, Math.min(5, advantage.stars ?? 0))
+
   const sendChat = async (e) => {
     e.preventDefault()
-    const msg = input.trim()
-    if (!msg || chatBusy) return
-    setMessages(prev => [...prev, { role: 'user', text: msg }])
+    const message = input.trim()
+    if (!message || chatBusy) return
+
+    setMessages((prev) => [...prev, { role: 'user', text: message }])
     setInput('')
     setChatBusy(true)
-    setMessages(prev => [...prev, { role: 'ai', text: '…' }])
+    setMessages((prev) => [...prev, { role: 'ai', text: 'Thinking...' }])
 
     try {
-      const res  = await fetch('/api/chat', {
-        method:  'POST',
+      const res = await fetch('/api/chat', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ doc_id: docId, message: msg }),
+        body: JSON.stringify({ doc_id: docId, message }),
       })
       const data = await res.json()
-      setMessages(prev => {
+      setMessages((prev) => {
         const next = [...prev]
         next[next.length - 1] = data.success
-          ? { role: 'ai',    text: data.response }
+          ? { role: 'ai', text: data.response }
           : { role: 'error', text: data.detail || data.error || 'Error' }
         return next
       })
     } catch (err) {
-      setMessages(prev => {
+      setMessages((prev) => {
         const next = [...prev]
         next[next.length - 1] = { role: 'error', text: 'Network error: ' + err.message }
         return next
@@ -104,11 +139,21 @@ export default function SharePage() {
 
   if (notFound) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="glass rounded-3xl p-12 text-center max-w-md mx-4">
-          <div className="text-6xl mb-4">🔒</div>
-          <h2 className="text-xl font-black text-white mb-3">Document Not Found</h2>
-          <p className="text-slate-400 text-sm">This SmartDrop link may be invalid or expired (TTL: 7 days).</p>
+      <div className="min-h-screen bg-slate-950 px-4 py-10">
+        <div className="mx-auto grid min-h-[70vh] max-w-lg place-items-center">
+          <div className="rounded-[2rem] border border-white/6 bg-slate-900/80 p-10 text-center shadow-2xl">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-red-500/10 text-red-300">
+              <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v4m0 4h.01M10.29 3.86l-7.2 12A2 2 0 004.8 19h14.4a2 2 0 001.71-3.14l-7.2-12a2 2 0 00-3.42 0z" />
+              </svg>
+            </div>
+            <h2 className="mt-6 text-2xl font-black tracking-tight text-white">
+              Document not found
+            </h2>
+            <p className="mt-3 text-sm leading-7 text-slate-400">
+              This SmartDrop link may be invalid, expired, or removed from the store.
+            </p>
+          </div>
         </div>
       </div>
     )
@@ -116,161 +161,230 @@ export default function SharePage() {
 
   if (!docData) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="flex items-center gap-3 text-vault-accent">
-          <div className="w-6 h-6 border-2 border-vault-accent border-t-transparent rounded-full animate-spin" />
-          <span className="font-black text-sm uppercase tracking-widest">Loading SmartDrop…</span>
+      <div className="min-h-screen bg-slate-950 px-4 py-10">
+        <div className="mx-auto flex min-h-[70vh] items-center justify-center gap-3 text-cyan-300">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-cyan-300 border-t-transparent" />
+          <span className="text-sm font-black uppercase tracking-[0.24em]">Loading report</span>
         </div>
       </div>
     )
   }
 
-  const analysis  = docData.analysis   ?? {}
-  const trust     = docData.trust_info  ?? {}
-  const adv       = trust.advantage     ?? {}
-  const metrics   = analysis.converted_metrics ?? {}
-  const stdInfo   = analysis.standard_info     ?? {}
-  const redacted  = (analysis.redacted_credentials ?? []).map(c => `[FILE: ${c.name}]\n${c.content}`).join('\n\n---\n\n')
-  const score     = trust.score ?? '--'
-  const stars     = adv.stars  ?? 0
-
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Background */}
-      <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
-        <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-vault-accent/8 blur-[100px] rounded-full" />
-        <div className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-indigo-500/8 blur-[100px] rounded-full" />
+    <div className="min-h-screen bg-slate-950 text-slate-200">
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        <div className="absolute left-[-10%] top-[-10%] h-[40%] w-[40%] rounded-full bg-cyan-500/8 blur-[120px]" />
+        <div className="absolute right-[-8%] top-[10%] h-[32%] w-[32%] rounded-full bg-blue-600/8 blur-[120px]" />
       </div>
 
-      {/* Nav */}
-      <nav className="border-b border-slate-800/50 bg-vault-900/80 backdrop-blur-xl px-6 py-4 flex justify-between items-center sticky top-0 z-50">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-gradient-to-br from-vault-accent to-indigo-600 rounded-xl flex items-center justify-center">
-            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
+      <header className="sticky top-0 z-40 border-b border-white/6 bg-slate-950/80 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-4 py-4 md:px-8">
+          <div className="min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-slate-500">
+              SmartDrop Viewer
+            </p>
+            <h1 className="mt-1 truncate text-lg font-black tracking-tight text-white md:text-2xl">
+              {analysis.doc_id || 'Shared report'}
+            </h1>
           </div>
-          <div>
-            <span className="font-black text-white text-sm">SmartDrop <span className="text-vault-accent">Viewer</span></span>
-            <p className="text-[9px] text-slate-500 uppercase tracking-widest">Powered by VaultSage AI</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          {timeLeft && (
-            <span className="text-[10px] font-black text-slate-500 border border-slate-700 rounded-full px-4 py-1.5">{timeLeft}</span>
-          )}
-          <span className="text-[9px] font-mono text-slate-600 hidden sm:block">{analysis.doc_id}</span>
-        </div>
-      </nav>
 
-      <main className="flex-1 flex overflow-hidden flex-col md:flex-row">
-        {/* Left: Document analysis */}
-        <div className="flex-1 p-6 overflow-y-auto space-y-6">
-          {/* Header */}
-          <div className="glass rounded-2xl p-6 shadow-xl">
-            <h2 className="text-xl font-black text-white mb-4">SmartDrop: {analysis.doc_id}</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div>
-                <p className="text-xs text-slate-400 mb-1">Target Country</p>
-                <p className="font-bold text-white">{docData.target_country}</p>
+          <div className="flex items-center gap-3">
+            {timeLeft && (
+              <span className="hidden rounded-full border border-white/6 bg-white/[0.03] px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-slate-400 md:inline-flex">
+                {timeLeft}
+              </span>
+            )}
+            <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-cyan-200">
+              Shared
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <main className="mx-auto grid max-w-[1600px] grid-cols-1 gap-8 px-4 py-6 md:px-8 xl:grid-cols-12">
+        <section className="space-y-6 xl:col-span-8">
+          <div className="rounded-[2rem] border border-white/6 bg-slate-900/75 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl md:p-8">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+              <div className="max-w-3xl">
+                <p className="text-[10px] font-black uppercase tracking-[0.32em] text-cyan-300/70">
+                  Public report
+                </p>
+                <h2 className="mt-3 text-3xl font-black tracking-tight text-white md:text-5xl">
+                  {docData.goal} for {docData.target_country}
+                </h2>
+                <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-400 md:text-base">
+                  Verify the credential summary, review redacted evidence, and ask the AI assistant for next-step guidance.
+                </p>
               </div>
-              <div>
-                <p className="text-xs text-slate-400 mb-1">Goal</p>
-                <p className="font-bold text-white">{docData.goal}</p>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <StatCard label="Trust score" value={trust.score ?? '--'} hint={trust.level ?? 'Pending'} />
+                <StatCard label="IAL" value={trust.ial ?? '--'} hint={stdInfo.code ?? 'N/A'} />
               </div>
-              <div>
-                <p className="text-xs text-slate-400 mb-1">Trust Score</p>
-                <p className="text-3xl font-black text-vault-safe">{score}</p>
+            </div>
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              <span className="rounded-full border border-white/6 bg-white/[0.03] px-4 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-slate-300">
+                {docData.target_country}
+              </span>
+              <span className="rounded-full border border-white/6 bg-white/[0.03] px-4 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-slate-300">
+                {docData.goal}
+              </span>
+              <span className="rounded-full border border-amber-400/20 bg-amber-400/10 px-4 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-amber-200">
+                {'★'.repeat(stars)}{'☆'.repeat(5 - stars)}
+              </span>
+            </div>
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div className="rounded-[1.75rem] border border-white/6 bg-slate-900/75 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
+              <p className="text-[10px] font-black uppercase tracking-[0.28em] text-slate-500">
+                Standardized metrics
+              </p>
+              <div className="mt-4 rounded-[1.5rem] border border-white/6 bg-white/[0.03] p-5">
+                <p className="text-4xl font-black tracking-tight text-white">
+                  {metrics.val ?? '--'}
+                </p>
+                <p className="mt-2 text-[11px] font-black uppercase tracking-[0.24em] text-cyan-200">
+                  {metrics.system ?? 'Pending'}
+                </p>
+                <p className="mt-3 text-sm leading-7 text-slate-400">
+                  {metrics.detail ?? 'No metric details available.'}
+                </p>
               </div>
-              <div>
-                <p className="text-xs text-slate-400 mb-1">IAL Level</p>
-                <p className="text-sm font-black text-vault-accent">{trust.ial}</p>
+            </div>
+
+            <div className="rounded-[1.75rem] border border-white/6 bg-slate-900/75 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
+              <p className="text-[10px] font-black uppercase tracking-[0.28em] text-slate-500">
+                Verdict summary
+              </p>
+              <div className="mt-4 rounded-[1.5rem] border border-white/6 bg-white/[0.03] p-5">
+                <p className="text-[11px] font-black uppercase tracking-[0.22em] text-cyan-200">
+                  {trust.level ?? 'Pending'}
+                </p>
+                <p className="mt-3 text-sm leading-7 text-slate-300">
+                  {advantage.analysis ?? 'Assessment pending.'}
+                </p>
               </div>
             </div>
           </div>
 
-          {/* Stars + verdict */}
-          <div className="glass rounded-2xl p-6 shadow-xl">
-            <p className="text-xs text-slate-400 mb-2 uppercase tracking-widest font-black">Approval Probability</p>
-            <div className="text-3xl text-vault-gold mb-2">{'★'.repeat(stars)}{'☆'.repeat(5-stars)}</div>
-            <p className="text-sm text-slate-300 italic">{adv.analysis}</p>
-          </div>
-
-          {/* Metrics */}
-          <div className="glass rounded-2xl p-6 shadow-xl">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">AI Standardized Report</h3>
-              <span className="text-[9px] font-mono text-vault-accent border border-vault-accent/30 px-2 py-1 rounded-lg">{stdInfo.code}</span>
+          <div className="rounded-[1.75rem] border border-white/6 bg-slate-900/75 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl md:p-8">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-slate-500">
+                  Redacted evidence
+                </p>
+                <h3 className="mt-2 text-xl font-black text-white">
+                  AI report digest
+                </h3>
+              </div>
+              <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-200">
+                PII redacted
+              </span>
             </div>
-            <p className="text-4xl font-black text-white mb-1">{metrics.val}</p>
-            <p className="text-xs text-vault-accent font-black uppercase tracking-widest mb-3">{metrics.system}</p>
-            <p className="text-xs text-slate-500 font-mono italic">{metrics.detail}</p>
-          </div>
-
-          {/* AI report */}
-          <div className="glass rounded-2xl p-6 shadow-xl">
-            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">VaultSage AI Analysis (PII Redacted)</h3>
-            <pre className="text-sm font-mono text-slate-400 whitespace-pre-wrap leading-relaxed max-h-[40vh] overflow-y-auto">
-              {redacted || 'No content available.'}
+            <pre className="mt-5 max-h-[420px] overflow-y-auto whitespace-pre-wrap rounded-[1.5rem] border border-white/6 bg-slate-950/70 p-5 text-[11px] leading-7 text-slate-400">
+              {redacted || 'No redacted content available.'}
             </pre>
           </div>
 
-          {/* QR Code */}
-          <div className="glass rounded-2xl p-6 shadow-xl flex items-center gap-6 flex-wrap">
-            <QRCodeSVG
-              value={window.location.href}
-              size={100}
-              fgColor="#38bdf8"
-              bgColor="#020617"
-              level="M"
-            />
-            <div>
-              <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Scan to Verify</p>
-              <p className="text-sm text-vault-accent font-mono break-all">{window.location.href}</p>
+          <div className="rounded-[1.75rem] border border-white/6 bg-slate-900/75 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl md:p-8">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+              <div className="max-w-xl">
+                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-slate-500">
+                  Verification
+                </p>
+                <h3 className="mt-2 text-xl font-black text-white">
+                  Scan or copy the public link
+                </h3>
+                <p className="mt-3 text-sm leading-7 text-slate-400">
+                  The QR code points to this exact report URL for external review.
+                </p>
+              </div>
+              <div className="rounded-[1.5rem] border border-white/6 bg-white p-4">
+                <QRCodeSVG
+                  value={window.location.href}
+                  size={112}
+                  fgColor="#0f172a"
+                  bgColor="#ffffff"
+                  level="M"
+                />
+              </div>
+            </div>
+
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+              <div className="min-w-0 flex-1 rounded-[1.25rem] border border-white/6 bg-white/[0.03] px-4 py-4">
+                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
+                  Share link
+                </p>
+                <p className="mt-2 truncate text-sm font-bold text-cyan-200">
+                  {window.location.href}
+                </p>
+              </div>
               <button
                 onClick={() => navigator.clipboard.writeText(window.location.href)}
-                className="mt-2 text-[10px] text-slate-500 hover:text-white border border-slate-700 hover:border-vault-accent rounded-lg px-3 py-1 transition-all"
+                className="rounded-2xl border border-white/8 bg-white/[0.03] px-5 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-white transition hover:bg-white/[0.06]"
               >
-                Copy Link
+                Copy link
               </button>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Right: Chat */}
-        <div className="w-full md:w-96 border-t md:border-t-0 md:border-l border-slate-700/50 flex flex-col bg-vault-800/40">
-          <div className="p-4 border-b border-slate-700/50 bg-slate-800/30">
-            <h3 className="text-vault-accent font-black flex items-center gap-2 text-sm">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-              </svg>
-              VaultSage AI Assistant
-            </h3>
-            <p className="text-xs text-slate-400 mt-1">Ask anything about this credential document.</p>
+        <aside className="space-y-6 xl:sticky xl:top-24 xl:col-span-4 xl:self-start">
+          <div className="rounded-[1.75rem] border border-white/6 bg-slate-900/75 p-5 shadow-2xl shadow-black/20 backdrop-blur-xl">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-slate-500">
+                  Assistant
+                </p>
+                <h3 className="mt-2 text-lg font-black text-white">
+                  Ask the report
+                </h3>
+              </div>
+              <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-200">
+                Live
+              </span>
+            </div>
+            <p className="mt-3 text-sm leading-7 text-slate-400">
+              Ask about missing documents, policy gaps, or what to submit next.
+            </p>
           </div>
 
-          <div ref={chatBoxRef} className="flex-1 overflow-y-auto p-4 space-y-3 min-h-[200px] max-h-[60vh] md:max-h-none">
-            {messages.map((m, i) => <ChatMessage key={i} msg={m} />)}
-          </div>
+          <div className="rounded-[1.75rem] border border-white/6 bg-slate-900/75 shadow-2xl shadow-black/20 backdrop-blur-xl">
+            <div className="border-b border-white/6 px-5 py-4">
+              <p className="text-[10px] font-black uppercase tracking-[0.28em] text-slate-500">
+                Conversation
+              </p>
+            </div>
 
-          <form onSubmit={sendChat} className="p-4 border-t border-slate-700/50 flex gap-2">
-            <input
-              type="text"
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              disabled={chatBusy}
-              placeholder="Ask about this document…"
-              className="flex-1 bg-slate-900 border border-slate-600 focus:border-vault-accent rounded-xl px-4 py-2 text-sm text-white outline-none placeholder:text-slate-600 transition-colors"
-            />
-            <button
-              type="submit"
-              disabled={chatBusy || !input.trim()}
-              className="bg-vault-accent hover:bg-sky-400 text-slate-900 font-black px-4 py-2 rounded-xl transition-colors disabled:opacity-50 text-sm"
-            >
-              {chatBusy ? '…' : 'Send'}
-            </button>
-          </form>
-        </div>
+            <div ref={chatBoxRef} className="max-h-[56vh] space-y-3 overflow-y-auto px-5 py-5">
+              {messages.map((message, index) => (
+                <ChatBubble key={index} msg={message} />
+              ))}
+            </div>
+
+            <form onSubmit={sendChat} className="border-t border-white/6 p-4">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  disabled={chatBusy}
+                  placeholder="Ask about this report..."
+                  className="min-w-0 flex-1 rounded-2xl border border-white/8 bg-slate-950/90 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-400/70"
+                />
+                <button
+                  type="submit"
+                  disabled={chatBusy || !input.trim()}
+                  className="rounded-2xl bg-cyan-400 px-4 py-3 text-sm font-black text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {chatBusy ? '...' : 'Send'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </aside>
       </main>
     </div>
   )

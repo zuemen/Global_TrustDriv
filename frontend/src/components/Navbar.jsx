@@ -2,79 +2,87 @@ import { useI18n } from '../hooks/useI18n'
 
 const LANGS = [
   { code: 'en', label: 'EN' },
-  { code: 'zh', label: '中文' },
-  { code: 'ko', label: '한국어' },
+  { code: 'zh', label: 'ZH' },
+  { code: 'ko', label: 'KO' },
+]
+
+const TABS = [
+  { label: 'Dashboard', active: true },
+  { label: 'Cases', active: false },
+  { label: 'Audit Trail', active: false },
+  { label: 'Network', active: false },
 ]
 
 export default function Navbar() {
   const { lang, setLang, t } = useI18n()
 
   return (
-    <nav className="border-b border-slate-800/50 bg-vault-900/80 backdrop-blur-xl px-6 md:px-10 py-5 flex justify-between items-center sticky top-0 z-50">
-      {/* Brand */}
-      <div className="flex items-center gap-10">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-vault-accent to-indigo-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-vault-accent/30 shrink-0">
-            <svg className="w-5 h-5 md:w-7 md:h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <header className="sticky top-0 z-50 border-b border-white/6 bg-slate-950/80 backdrop-blur-xl">
+      <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-4 py-4 md:px-8">
+        <div className="flex min-w-0 items-center gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-600 shadow-lg shadow-cyan-500/20">
+            <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
           </div>
-          <div className="hidden sm:block">
-            <h1 className="text-xl md:text-2xl font-black text-white tracking-tighter">
-              {t('brandName').split(' ').slice(0,1)[0]}{' '}
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-vault-accent to-indigo-400">
-                {t('brandName').split(' ').slice(1).join(' ')}
+
+          <div className="min-w-0">
+            <div className="flex items-center gap-3">
+              <h1 className="truncate text-base font-black tracking-tight text-white md:text-xl">
+                {t('brandName')}
+              </h1>
+              <span className="hidden rounded-full border border-cyan-400/20 bg-cyan-400/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-cyan-300 md:inline-flex">
+                Live
               </span>
-            </h1>
-            <p className="text-[9px] text-slate-500 font-black uppercase tracking-[0.25em]">{t('brandSub')}</p>
+            </div>
+            <p className="mt-1 truncate text-[10px] font-black uppercase tracking-[0.28em] text-slate-500">
+              {t('brandSub')}
+            </p>
           </div>
         </div>
 
-        {/* Navigation Links */}
-        <div className="hidden lg:flex items-center gap-8">
-          {[
-            { label: 'Dashboard', active: true },
-            { label: 'Vault',     active: false },
-            { label: 'History',   active: false },
-            { label: 'Network',   active: false },
-          ].map(nav => (
+        <nav className="hidden items-center gap-1 rounded-full border border-white/6 bg-white/4 p-1 xl:flex">
+          {TABS.map((tab) => (
             <button
-              key={nav.label}
-              onClick={() => !nav.active && alert(`${nav.label} module is coming soon! This is part of our future roadmap for a complete Trust-as-a-Service ecosystem.`)}
-              className={`text-[11px] font-black uppercase tracking-[0.2em] transition-all ${
-                nav.active ? 'text-vault-accent' : 'text-slate-500 hover:text-slate-300'
+              key={tab.label}
+              type="button"
+              className={`rounded-full px-4 py-2 text-[11px] font-black uppercase tracking-[0.18em] transition ${
+                tab.active
+                  ? 'bg-white text-slate-950 shadow-sm'
+                  : 'text-slate-400 hover:bg-white/6 hover:text-white'
               }`}
             >
-              {nav.label}
+              {tab.label}
             </button>
           ))}
+        </nav>
+
+        <div className="flex items-center gap-3">
+          <div className="hidden rounded-full border border-emerald-400/20 bg-emerald-400/10 px-4 py-2 md:flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.7)]" />
+            <span className="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-300">
+              {t('navStatus')}
+            </span>
+          </div>
+
+          <div className="flex rounded-full border border-white/8 bg-slate-900/90 p-1">
+            {LANGS.map((item) => (
+              <button
+                key={item.code}
+                type="button"
+                onClick={() => setLang(item.code)}
+                className={`rounded-full px-3 py-2 text-[10px] font-black uppercase tracking-[0.22em] transition ${
+                  lang === item.code
+                    ? 'bg-cyan-400 text-slate-950'
+                    : 'text-slate-500 hover:text-white'
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
-
-      {/* Right side */}
-      <div className="flex items-center gap-3">
-        <div className="hidden md:flex px-5 py-2 bg-slate-800/50 border border-vault-accent/20 rounded-full items-center gap-2">
-          <span className="w-2 h-2 bg-vault-accent rounded-full animate-pulse shadow-[0_0_8px_#38bdf8]" />
-          <span className="text-[9px] font-black text-vault-accent uppercase tracking-widest">{t('navStatus')}</span>
-        </div>
-
-        {/* Language toggle */}
-        <div className="flex gap-1 p-1 bg-slate-800/60 rounded-xl border border-slate-700/40">
-          {LANGS.map(l => (
-            <button
-              key={l.code}
-              onClick={() => setLang(l.code)}
-              className={`px-3 py-1.5 text-[10px] font-black rounded-lg transition-all ${
-                lang === l.code
-                  ? 'bg-vault-accent text-slate-900'
-                  : 'text-slate-500 hover:text-white'
-              }`}
-            >
-              {l.label}
-            </button>
-          ))}
-        </div>
-      </div>
-    </nav>
+    </header>
   )
 }
