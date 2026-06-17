@@ -160,6 +160,28 @@ export default function MainPage() {
         />
 
         <div className="xl:col-span-9 space-y-8">
+          <section className="glass rounded-[2rem] p-6 md:p-7 border border-white/5 shadow-2xl">
+            <div className="flex flex-wrap items-center gap-4 justify-between">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 mb-2">Workspace Overview</p>
+                <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight">
+                  {goal} for {jurisdiction}
+                </h2>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <span className="px-4 py-2 rounded-full bg-slate-900/80 border border-slate-700/60 text-[11px] font-black uppercase tracking-[0.2em] text-slate-300">
+                  {files.length} Documents
+                </span>
+                <span className="px-4 py-2 rounded-full bg-vault-accent/10 border border-vault-accent/20 text-[11px] font-black uppercase tracking-[0.2em] text-vault-accent">
+                  {loading ? 'Processing documents' : result ? 'Analysis complete' : 'Waiting for intake'}
+                </span>
+                <span className="px-4 py-2 rounded-full bg-vault-safe/10 border border-vault-safe/20 text-[11px] font-black uppercase tracking-[0.2em] text-vault-safe">
+                  {result ? `Trust Score ${result.trust_info?.score ?? '--'}` : 'Awaiting analysis'}
+                </span>
+              </div>
+            </div>
+          </section>
+
           <div className={`grid grid-cols-1 lg:grid-cols-12 gap-8 transition-all duration-1000 ${!result && !loading ? 'opacity-40 grayscale' : ''}`}>
             {/* Document viewer (left) */}
             <div className="lg:col-span-7 space-y-6">
