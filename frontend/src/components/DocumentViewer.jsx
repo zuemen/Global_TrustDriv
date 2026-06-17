@@ -1,63 +1,193 @@
+import { useEffect, useMemo, useState } from 'react'
 import { useI18n } from '../hooks/useI18n'
 
 const FALLBACK_IMG = 'https://cdn.pixabay.com/photo/2013/07/12/15/20/document-149692_1280.png'
 
+function truncateText(text) {
+  const value = String(text ?? '')
+  if (!value) return 'No content preview available.'
+  if (value.length <= 180) return value
+  return `${value.slice(0, 180).trim()}...`
+}
+
 export default function DocumentViewer({ previews = [], isScanning = false, filename = '' }) {
   const { t } = useI18n()
+  const [activeIndex, setActiveIndex] = useState(0)
+
+  useEffect(() => {
+    setActiveIndex(0)
+  }, [previews])
+
+  const activeDoc = useMemo(() => previews[activeIndex] ?? previews[0] ?? null, [previews, activeIndex])
 
   return (
-    <div className="glass rounded-[2.5rem] overflow-hidden relative min-h-[500px] shadow-2xl flex flex-col border border-white/5">
-      {/* Title bar */}
-      <div className="bg-slate-800/80 px-8 py-5 border-b border-slate-700/50 flex justify-between items-center">
-        <div className="flex items-center gap-2.5">
-          <span className="w-3.5 h-3.5 bg-red-500/80 rounded-full shadow-lg shadow-red-500/20" />
-          <span className="w-3.5 h-3.5 bg-yellow-500/80 rounded-full shadow-lg shadow-yellow-500/20" />
-          <span className="w-3.5 h-3.5 bg-green-500/80 rounded-full shadow-lg shadow-green-500/20" />
+    <section className="overflow-hidden rounded-[1.75rem] border border-white/6 bg-slate-900/70 shadow-2xl shadow-black/20 backdrop-blur-xl">
+      <div className="flex items-center justify-between border-b border-white/6 bg-slate-950/70 px-6 py-4">
+        <div className="flex items-center gap-2">
+          <span className="h-3.5 w-3.5 rounded-full bg-red-400/80 shadow-[0_0_10px_rgba(248,113,113,0.35)]" />
+          <span className="h-3.5 w-3.5 rounded-full bg-amber-400/80 shadow-[0_0_10px_rgba(251,191,36,0.35)]" />
+          <span className="h-3.5 w-3.5 rounded-full bg-emerald-400/80 shadow-[0_0_10px_rgba(52,211,153,0.35)]" />
         </div>
-        <span className="text-[10px] font-mono text-slate-500 font-black uppercase tracking-[0.2em] truncate max-w-[60%]">
+        <div className="min-w-0 max-w-[60%] truncate text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
           {filename || t('noAssets')}
-        </span>
+        </div>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 relative flex items-center justify-center p-8 bg-slate-950/50">
-        {/* Scan overlay */}
+      <div className="relative">
         {isScanning && (
-          <div className="absolute inset-0 z-20 pointer-events-none">
-            <div className="absolute w-full h-1 bg-vault-accent shadow-[0_0_20px_#38bdf8,0_0_40px_#38bdf8] scanning-line" />
-            <div className="absolute inset-0 bg-vault-accent/10 backdrop-blur-[1px]" />
+          <div className="absolute inset-0 z-20 overflow-hidden rounded-[1.75rem] pointer-events-none">
+            <div className="scanning-line absolute h-1 w-full bg-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.8)]" />
+            <div className="absolute inset-0 bg-cyan-400/6 backdrop-blur-[1px]" />
           </div>
         )}
 
-        {previews.length === 0 ? (
-          <div className="text-slate-800 flex flex-col items-center justify-center gap-6 py-16">
-            <svg className="w-28 h-28 opacity-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={0.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <p className="text-[11px] font-black uppercase tracking-[0.5em] opacity-20">{t('noAssets')}</p>
+        {!previews.length ? (
+          <div className="grid min-h-[560px] place-items-center px-6 py-16">
+            <div className="max-w-md text-center">
+              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[1.75rem] border border-white/6 bg-white/[0.03]">
+                <svg className="h-9 w-9 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h3 className="mt-6 text-xl font-black text-white">
+                Waiting for document intake
+              </h3>
+              <p className="mt-3 text-sm leading-7 text-slate-500">
+                Upload a document set or load a demo scenario to see the verification workspace.
+              </p>
+            </div>
           </div>
         ) : (
-          <div className="w-full h-full flex flex-wrap gap-6 overflow-y-auto content-start justify-center py-2">
-            {previews.map((p, i) => (
-              <div
-                key={i}
-                className="w-[220px] h-[300px] bg-white rounded-xl shadow-2xl overflow-hidden border border-slate-300 relative group cursor-pointer hover:scale-105 transition-all duration-500"
-              >
-                <img
-                  src={p.img || FALLBACK_IMG}
-                  alt={p.name}
-                  className="w-full h-full object-cover"
-                  onError={e => { e.target.src = FALLBACK_IMG }}
-                />
-                <div className="absolute inset-0 bg-vault-900/75 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity p-4">
-                  <p className="text-[10px] text-vault-accent font-black uppercase tracking-widest mb-2">Authenticated Asset</p>
-                  <p className="text-[10px] text-white font-mono text-center break-all">{p.name}</p>
+          <div className="grid gap-0 xl:grid-cols-[280px_minmax(0,1fr)]">
+            <div className="border-b border-white/6 bg-slate-950/50 p-5 xl:border-b-0 xl:border-r">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.28em] text-slate-500">
+                    Document set
+                  </p>
+                  <h3 className="mt-2 text-lg font-black text-white">
+                    {previews.length} files
+                  </h3>
+                </div>
+                <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-200">
+                  Ready
+                </span>
+              </div>
+
+              <div className="mt-5 space-y-3">
+                {previews.map((item, index) => {
+                  const selected = index === activeIndex
+                  return (
+                    <button
+                      key={`${item.name}-${index}`}
+                      type="button"
+                      onClick={() => setActiveIndex(index)}
+                      className={`flex w-full items-start gap-3 rounded-[1.25rem] border px-3 py-3 text-left transition ${
+                        selected
+                          ? 'border-cyan-400/30 bg-cyan-400/10'
+                          : 'border-white/8 bg-white/[0.03] hover:border-white/16 hover:bg-white/[0.05]'
+                      }`}
+                    >
+                      <img
+                        src={item.img || FALLBACK_IMG}
+                        alt={item.name}
+                        className="h-12 w-12 rounded-xl object-cover ring-1 ring-white/8"
+                        onError={(e) => {
+                          e.currentTarget.src = FALLBACK_IMG
+                        }}
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className={`truncate text-sm font-bold ${selected ? 'text-white' : 'text-slate-200'}`}>
+                          {item.name}
+                        </p>
+                        <p className="mt-1 text-[11px] leading-5 text-slate-500">
+                          {truncateText(item.content)}
+                        </p>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div className="p-6 md:p-8">
+              <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0">
+                  <p className="text-[10px] font-black uppercase tracking-[0.28em] text-slate-500">
+                    Active document
+                  </p>
+                  <h3 className="mt-2 text-2xl font-black tracking-tight text-white md:text-3xl">
+                    {activeDoc?.name ?? 'Document preview'}
+                  </h3>
+                  <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-400">
+                    {truncateText(activeDoc?.content)}
+                  </p>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-[1.25rem] border border-white/6 bg-white/[0.03] px-4 py-3">
+                    <p className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">Files</p>
+                    <p className="mt-2 text-lg font-black text-white">{previews.length}</p>
+                  </div>
+                  <div className="rounded-[1.25rem] border border-white/6 bg-white/[0.03] px-4 py-3">
+                    <p className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">Mode</p>
+                    <p className="mt-2 text-lg font-black text-cyan-300">
+                      {isScanning ? 'Scanning' : 'Ready'}
+                    </p>
+                  </div>
                 </div>
               </div>
-            ))}
+
+              <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.8fr)]">
+                <div className="overflow-hidden rounded-[1.75rem] border border-white/6 bg-slate-950/60">
+                  <div className="border-b border-white/6 px-5 py-4">
+                    <p className="text-[10px] font-black uppercase tracking-[0.28em] text-slate-500">
+                      Preview canvas
+                    </p>
+                  </div>
+                  <div className="grid min-h-[360px] place-items-center p-6">
+                    <div className="w-full max-w-[360px] rounded-[1.5rem] border border-white/8 bg-white p-4 shadow-2xl shadow-black/30">
+                      <img
+                        src={activeDoc?.img || FALLBACK_IMG}
+                        alt={activeDoc?.name ?? 'preview'}
+                        className="aspect-[4/5] w-full rounded-[1rem] object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = FALLBACK_IMG
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="rounded-[1.5rem] border border-white/6 bg-white/[0.03] p-5">
+                    <p className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">Inspection notes</p>
+                    <div className="mt-4 space-y-3 text-sm leading-7 text-slate-300">
+                      <p>{activeDoc ? 'Document is queued for verification and extracted into the analysis pipeline.' : 'No active document selected.'}</p>
+                      <p className="text-slate-500">
+                        Use the left rail to switch between files and compare them in one place.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-[1.5rem] border border-white/6 bg-white/[0.03] p-5">
+                    <p className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">Document details</p>
+                    <div className="mt-4 space-y-3">
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="text-xs uppercase tracking-[0.2em] text-slate-500">Selected file</span>
+                        <span className="truncate text-sm font-bold text-white">{activeDoc?.name ?? '--'}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="text-xs uppercase tracking-[0.2em] text-slate-500">Preview source</span>
+                        <span className="truncate text-sm font-bold text-cyan-300">{activeDoc?.img ? 'Image preview' : 'Fallback preview'}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>
-    </div>
+    </section>
   )
 }

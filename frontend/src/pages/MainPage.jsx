@@ -10,100 +10,138 @@ const FALLBACK_IMG = 'https://cdn.pixabay.com/photo/2013/07/12/15/20/document-14
 
 const DEMO_DATA = {
   Study: {
-    goal: 'University Study', country: 'Germany',
+    goal: 'University Study',
+    country: 'Germany',
     docs: [
-      { name: 'Academic_Transcript.pdf',  img: 'https://cdn.pixabay.com/photo/2013/07/12/15/20/document-149692_1280.png',
-        content: 'Student: Michael Chen. GPA: 3.8/4.0. 128 credits in Computer Science. Issuer: National University of Technology.' },
-      { name: 'Degree_Certificate.pdf',   img: 'https://cdn.pixabay.com/photo/2012/04/18/22/07/certificate-38036_1280.png',
-        content: 'Degree: Bachelor of Science in Computer Science. Issued: 2024-06. Conferred by: National University of Technology.' },
-      { name: 'Bank_Statement.pdf',       img: 'https://cdn.pixabay.com/photo/2016/09/01/16/07/cash-1636540_1280.png',
-        content: 'Account holder: Chen Family. Balance sufficient for tuition and living costs. Verified by Global Trust Bank.' },
+      {
+        name: 'Academic_Transcript.pdf',
+        img: 'https://cdn.pixabay.com/photo/2013/07/12/15/20/document-149692_1280.png',
+        content: 'Student: Michael Chen. GPA: 3.8/4.0. 128 credits in Computer Science. Issuer: National University of Technology.',
+      },
+      {
+        name: 'Degree_Certificate.pdf',
+        img: 'https://cdn.pixabay.com/photo/2012/04/18/22/07/certificate-38036_1280.png',
+        content: 'Degree: Bachelor of Science in Computer Science. Issued: 2024-06. Conferred by: National University of Technology.',
+      },
+      {
+        name: 'Bank_Statement.pdf',
+        img: 'https://cdn.pixabay.com/photo/2016/09/01/16/07/cash-1636540_1280.png',
+        content: 'Account holder: Chen Family. Balance sufficient for tuition and living costs. Verified by Global Trust Bank.',
+      },
     ],
   },
   Career: {
-    goal: 'Employment', country: 'Singapore',
+    goal: 'Employment',
+    country: 'Singapore',
     docs: [
-      { name: 'Employment_Letter.pdf',    img: FALLBACK_IMG,
-        content: 'Position: Senior Software Architect at GlobalTech Ltd. Tenure: 2018–2024. HR-verified letter of good standing.' },
-      { name: 'Tax_Document.pdf',         img: 'https://cdn.pixabay.com/photo/2014/12/21/23/34/check-575778_1280.png',
-        content: 'Annual Tax Return 2023. Filed and accepted. Income declared per local jurisdiction. Verified by tax authority.' },
+      {
+        name: 'Employment_Letter.pdf',
+        img: FALLBACK_IMG,
+        content: 'Position: Senior Software Architect at GlobalTech Ltd. Tenure: 2018-2024. HR-verified letter of good standing.',
+      },
+      {
+        name: 'Tax_Document.pdf',
+        img: 'https://cdn.pixabay.com/photo/2014/12/21/23/34/check-575778_1280.png',
+        content: 'Annual Tax Return 2023. Filed and accepted. Income declared per local jurisdiction. Verified by tax authority.',
+      },
     ],
   },
   Taiwan: {
-    goal: 'University Study', country: 'Germany',
+    goal: 'University Study',
+    country: 'Germany',
     docs: [
-      { name: '成績單_NCCU_Transcript.pdf', img: FALLBACK_IMG,
-        content: 'Student: 陳明志. GPA: 3.7/4.0. National Chengchi University (NCCU), Dept. of International Affairs. 128 credits.' },
-      { name: 'Degree_Certificate_NCCU.pdf', img: 'https://cdn.pixabay.com/photo/2012/04/18/22/07/certificate-38036_1280.png',
-        content: 'Bachelor of Arts in International Affairs. Issued: 2024-06. National Chengchi University (國立政治大學).' },
-      { name: 'CTBC_Bank_Statement.pdf',     img: 'https://cdn.pixabay.com/photo/2016/09/01/16/07/cash-1636540_1280.png',
-        content: 'Account holder: 陳明志. CTBC Bank (中國信託). Balance: TWD 820,000. Certified for overseas study application.' },
+      {
+        name: 'NCCU_Transcript.pdf',
+        img: FALLBACK_IMG,
+        content: 'Student: Chen. GPA: 3.7/4.0. National Chengchi University (NCCU), Department of International Affairs. 128 credits.',
+      },
+      {
+        name: 'Degree_Certificate_NCCU.pdf',
+        img: 'https://cdn.pixabay.com/photo/2012/04/18/22/07/certificate-38036_1280.png',
+        content: 'Bachelor of Arts in International Affairs. Issued: 2024-06. National Chengchi University.',
+      },
+      {
+        name: 'CTBC_Bank_Statement.pdf',
+        img: 'https://cdn.pixabay.com/photo/2016/09/01/16/07/cash-1636540_1280.png',
+        content: 'Account holder: Chen. CTBC Bank. Balance: TWD 820,000. Certified for overseas study application.',
+      },
     ],
   },
   Korea: {
-    goal: 'Talent Pass', country: 'Singapore',
+    goal: 'Talent Pass',
+    country: 'Singapore',
     docs: [
-      { name: '재직증명서_Kakao_Employment.pdf', img: FALLBACK_IMG,
-        content: 'Certificate of Employment. Company: Kakao Corp (카카오). Position: Senior Software Engineer. Period: 2020–2024.' },
-      { name: '소득금액증명_Tax_Certificate.pdf', img: 'https://cdn.pixabay.com/photo/2014/12/21/23/34/check-575778_1280.png',
-        content: 'Korean National Tax Service (국세청) — Income Verification. 2023 Income: KRW 58,000,000. Verified stamp.' },
+      {
+        name: 'Kakao_Employment.pdf',
+        img: FALLBACK_IMG,
+        content: 'Certificate of Employment. Company: Kakao Corp. Position: Senior Software Engineer. Period: 2020-2024.',
+      },
+      {
+        name: 'Tax_Certificate.pdf',
+        img: 'https://cdn.pixabay.com/photo/2014/12/21/23/34/check-575778_1280.png',
+        content: 'Korean National Tax Service. Income Verification. 2023 Income: KRW 58,000,000. Verified stamp.',
+      },
     ],
   },
 }
 
-const STEPS = ['upload', 'process', 'analyze', 'report']
+const WORKFLOW = ['Intake', 'Processing', 'Analysis', 'Report']
 
 export default function MainPage() {
   const [jurisdiction, setJurisdiction] = useState('USA')
-  const [goal,         setGoal]         = useState('University Study')
-  const [files,        setFiles]        = useState([])
-  const [previews,     setPreviews]     = useState([])
-  const [fileLabel,    setFileLabel]    = useState('')
-  const [loading,      setLoading]      = useState(false)
-  const [activeStep,   setActiveStep]   = useState(null)
-  const [result,       setResult]       = useState(null)
-  const [docId,        setDocId]        = useState(null)
+  const [goal, setGoal] = useState('University Study')
+  const [files, setFiles] = useState([])
+  const [previews, setPreviews] = useState([])
+  const [fileLabel, setFileLabel] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [activeStep, setActiveStep] = useState(null)
+  const [result, setResult] = useState(null)
+  const [docId, setDocId] = useState(null)
+  const [notice, setNotice] = useState(null)
 
   const handleFilesChange = (e) => {
     const selected = Array.from(e.target.files)
     setFiles(selected)
-    setPreviews(selected.map(f => ({ name: f.name, img: FALLBACK_IMG })))
-    setFileLabel(`${selected.length} FILE(S) READY`)
+    setPreviews(selected.map((file) => ({ name: file.name, img: FALLBACK_IMG })))
+    setFileLabel(`${selected.length} file(s) ready`)
   }
 
   const handleDrop = (e) => {
     e.preventDefault()
     const dropped = Array.from(e.dataTransfer.files)
     setFiles(dropped)
-    setPreviews(dropped.map(f => ({ name: f.name, img: FALLBACK_IMG })))
-    setFileLabel(`${dropped.length} FILE(S) READY`)
+    setPreviews(dropped.map((file) => ({ name: file.name, img: FALLBACK_IMG })))
+    setFileLabel(`${dropped.length} file(s) ready`)
   }
 
   const handleDemo = (type) => {
-    const d = DEMO_DATA[type]
-    if (!d) return
-    setJurisdiction(d.country)
-    setGoal(d.goal)
-    setFiles(d.docs.map(doc => new File([doc.content], doc.name, { type: 'text/plain' })))
-    setPreviews(d.docs)
-    setFileLabel(`SCENARIO: ${d.goal.toUpperCase()} LOADED`)
+    const scenario = DEMO_DATA[type]
+    if (!scenario) return
+
+    setJurisdiction(scenario.country)
+    setGoal(scenario.goal)
+    setFiles(scenario.docs.map((doc) => new File([doc.content], doc.name, { type: 'text/plain' })))
+    setPreviews(scenario.docs)
+    setFileLabel(`Scenario: ${scenario.goal} loaded`)
     setResult(null)
     setDocId(null)
+    setNotice(null)
   }
 
   const handleSubmit = async () => {
     if (!files.length) {
-      alert('System requires document injection. Load a demo or upload files.')
+      setNotice({ type: 'warning', text: 'Upload files or load a demo scenario first.' })
       return
     }
 
     setLoading(true)
     setResult(null)
     setDocId(null)
+    setNotice(null)
     setActiveStep('upload')
 
     const formData = new FormData()
-    files.forEach(f => formData.append('documents', f))
+    files.forEach((file) => formData.append('documents', file))
     formData.append('targetCountry', jurisdiction)
     formData.append('goal', goal)
 
@@ -111,7 +149,7 @@ export default function MainPage() {
       const res = await fetch('/api/trust-notary', { method: 'POST', body: formData })
 
       setActiveStep('process')
-      await new Promise(r => setTimeout(r, 400))
+      await new Promise((resolve) => setTimeout(resolve, 400))
       setActiveStep('analyze')
 
       if (!res.ok) {
@@ -121,12 +159,12 @@ export default function MainPage() {
 
       const data = await res.json()
       setActiveStep('report')
-      await new Promise(r => setTimeout(r, 600))
+      await new Promise((resolve) => setTimeout(resolve, 600))
 
       setResult(data)
       setDocId(data.analysis?.doc_id ?? null)
     } catch (err) {
-      alert('VaultSage Error: ' + err.message)
+      setNotice({ type: 'error', text: 'VaultSage Error: ' + err.message })
       console.error(err)
     } finally {
       setLoading(false)
@@ -134,22 +172,26 @@ export default function MainPage() {
     }
   }
 
-  const previewFilename = previews.map(p => p.name).join(' · ')
+  const previewFilename = previews.map((item) => item.name).join(', ')
+  const trustScore = result?.trust_info?.score ?? '--'
+  const verdict = result ? result.trust_info?.level ?? 'Assessment ready' : 'Awaiting intake'
 
   return (
     <div className="min-h-screen">
-      {/* Background blobs */}
-      <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
-        <div className="absolute -top-[10%] -left-[10%] w-[50%] h-[50%] bg-vault-accent/10 blur-[120px] rounded-full" />
-        <div className="absolute -bottom-[10%] -right-[10%] w-[50%] h-[50%] bg-indigo-500/10 blur-[120px] rounded-full" />
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        <div className="absolute left-[-10%] top-[-10%] h-[45%] w-[45%] rounded-full bg-cyan-500/10 blur-[130px]" />
+        <div className="absolute right-[-10%] top-[20%] h-[30%] w-[30%] rounded-full bg-blue-600/10 blur-[120px]" />
+        <div className="absolute bottom-[-10%] left-[20%] h-[35%] w-[35%] rounded-full bg-emerald-500/8 blur-[120px]" />
       </div>
 
       <Navbar />
 
-      <main className="max-w-[1700px] mx-auto mt-10 px-4 md:px-8 xl:px-10 grid grid-cols-1 xl:grid-cols-12 gap-8 pb-24">
+      <main className="mx-auto grid max-w-[1600px] grid-cols-1 gap-8 px-4 pb-16 pt-6 xl:grid-cols-12 xl:px-8">
         <Sidebar
-          jurisdiction={jurisdiction} setJurisdiction={setJurisdiction}
-          goal={goal}                 setGoal={setGoal}
+          jurisdiction={jurisdiction}
+          setJurisdiction={setJurisdiction}
+          goal={goal}
+          setGoal={setGoal}
           fileLabel={fileLabel}
           onFilesChange={handleFilesChange}
           onDrop={handleDrop}
@@ -159,37 +201,69 @@ export default function MainPage() {
           activeStep={activeStep}
         />
 
-        <div className="xl:col-span-9 space-y-8">
-          <section className="glass rounded-[2rem] p-6 md:p-7 border border-white/5 shadow-2xl">
-            <div className="flex flex-wrap items-center gap-4 justify-between">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 mb-2">Workspace Overview</p>
-                <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight">
-                  {goal} for {jurisdiction}
+        <section className="space-y-8 xl:col-span-9">
+          <div className="rounded-[2rem] border border-white/6 bg-slate-900/70 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl md:p-8">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+              <div className="max-w-3xl">
+                <p className="text-[10px] font-black uppercase tracking-[0.32em] text-cyan-300/70">
+                  Global TrustDrive
+                </p>
+                <h2 className="mt-3 text-3xl font-black tracking-tight text-white md:text-5xl">
+                  Credential intelligence for cross-border approvals.
                 </h2>
+                <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-400 md:text-base">
+                  Upload credentials, validate them against jurisdiction rules, and present a polished decision summary with shareable evidence.
+                </p>
               </div>
-              <div className="flex flex-wrap gap-3">
-                <span className="px-4 py-2 rounded-full bg-slate-900/80 border border-slate-700/60 text-[11px] font-black uppercase tracking-[0.2em] text-slate-300">
-                  {files.length} Documents
-                </span>
-                <span className="px-4 py-2 rounded-full bg-vault-accent/10 border border-vault-accent/20 text-[11px] font-black uppercase tracking-[0.2em] text-vault-accent">
-                  {loading ? 'Processing documents' : result ? 'Analysis complete' : 'Waiting for intake'}
-                </span>
-                <span className="px-4 py-2 rounded-full bg-vault-safe/10 border border-vault-safe/20 text-[11px] font-black uppercase tracking-[0.2em] text-vault-safe">
-                  {result ? `Trust Score ${result.trust_info?.score ?? '--'}` : 'Awaiting analysis'}
-                </span>
+
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="rounded-2xl border border-white/6 bg-white/[0.03] px-4 py-4">
+                  <p className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">Documents</p>
+                  <p className="mt-2 text-2xl font-black text-white">{files.length}</p>
+                </div>
+                <div className="rounded-2xl border border-white/6 bg-white/[0.03] px-4 py-4">
+                  <p className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">Status</p>
+                  <p className="mt-2 text-2xl font-black text-cyan-300">
+                    {loading ? 'Live' : result ? 'Ready' : 'Idle'}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-white/6 bg-white/[0.03] px-4 py-4">
+                  <p className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">Score</p>
+                  <p className="mt-2 text-2xl font-black text-emerald-300">{trustScore}</p>
+                </div>
               </div>
             </div>
-          </section>
 
-          <div className={`grid grid-cols-1 lg:grid-cols-12 gap-8 transition-all duration-1000 ${!result && !loading ? 'opacity-40 grayscale' : ''}`}>
-            {/* Document viewer (left) */}
-            <div className="lg:col-span-7 space-y-6">
-              <DocumentViewer
-                previews={previews}
-                isScanning={loading}
-                filename={previewFilename}
-              />
+            <div className="mt-6 flex flex-wrap gap-3">
+              <span className="rounded-full border border-white/6 bg-white/[0.03] px-4 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-slate-300">
+                {goal}
+              </span>
+              <span className="rounded-full border border-white/6 bg-white/[0.03] px-4 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-slate-300">
+                {jurisdiction}
+              </span>
+              <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-4 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-emerald-300">
+                {verdict}
+              </span>
+              <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-4 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-200">
+                {loading ? 'Processing' : result ? 'Analysis complete' : 'Awaiting documents'}
+              </span>
+            </div>
+
+            {notice && (
+              <div className={`mt-6 rounded-[1.25rem] border px-4 py-4 text-sm ${
+                notice.type === 'error'
+                  ? 'border-red-500/20 bg-red-950/40 text-red-300'
+                  : 'border-amber-400/20 bg-amber-400/10 text-amber-200'
+              }`}>
+                {notice.text}
+              </div>
+            )}
+          </div>
+
+          <div className={`grid grid-cols-1 gap-8 transition duration-700 lg:grid-cols-12 ${!result && !loading ? 'opacity-90' : ''}`}>
+            <div className="space-y-8 lg:col-span-7">
+              <DocumentViewer previews={previews} isScanning={loading} filename={previewFilename} />
+
               {result?.share_link && (
                 <ShareBanner
                   shareLink={result.share_link}
@@ -199,34 +273,34 @@ export default function MainPage() {
               )}
             </div>
 
-            {/* Analysis panel (right) */}
             <AnalysisPanel result={result} />
           </div>
 
-          {/* Deep analysis */}
           {result && (
-            <div className="glass rounded-[3rem] p-10 md:p-12 border border-indigo-500/20 shadow-2xl fade-up">
-              <div className="flex items-start gap-8">
-                <div className="w-16 h-16 bg-indigo-500/20 rounded-[1.5rem] flex items-center justify-center text-indigo-400 shrink-0 shadow-2xl shadow-indigo-500/10">
-                  <svg className="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <section className="rounded-[2rem] border border-white/6 bg-slate-900/70 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl md:p-8">
+              <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-cyan-400/12 text-cyan-300">
+                  <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-white font-black text-sm md:text-base uppercase tracking-[0.3em] mb-5">
-                    VaultSage AI Deep Analysis Verdict
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-black uppercase tracking-[0.32em] text-slate-500">
+                    Executive Summary
+                  </p>
+                  <h3 className="mt-3 text-xl font-black tracking-tight text-white md:text-2xl">
+                    {result.analysis?.standard_info?.name ?? 'Standard review'} / {result.analysis?.standard_info?.code ?? 'N/A'}
                   </h3>
-                  <p className="text-slate-400 text-sm md:text-base font-serif italic leading-relaxed whitespace-pre-wrap">
-                    {result.analysis?.advantage_analysis ?? 'Awaiting data input…'}
+                  <p className="mt-4 max-w-4xl whitespace-pre-wrap text-sm leading-7 text-slate-300 md:text-base">
+                    {result.analysis?.advantage_analysis ?? 'Analysis completed.'}
                   </p>
                 </div>
               </div>
-            </div>
+            </section>
           )}
 
-          {/* Gap Advisor */}
           {docId && <GapAdvisor docId={docId} />}
-        </div>
+        </section>
       </main>
     </div>
   )

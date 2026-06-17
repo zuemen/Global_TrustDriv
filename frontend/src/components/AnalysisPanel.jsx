@@ -1,78 +1,152 @@
 import { useI18n } from '../hooks/useI18n'
 
+function MetricCard({ label, value, hint, accent = 'text-white', border = 'border-white/6' }) {
+  return (
+    <div className={`rounded-[1.5rem] border ${border} bg-white/[0.03] p-5`}>
+      <p className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
+        {label}
+      </p>
+      <p className={`mt-3 text-3xl font-black tracking-tight ${accent}`}>
+        {value}
+      </p>
+      {hint && (
+        <p className="mt-2 text-xs leading-6 text-slate-500">
+          {hint}
+        </p>
+      )}
+    </div>
+  )
+}
+
 export default function AnalysisPanel({ result }) {
   const { t } = useI18n()
 
-  const trust   = result?.trust_info   ?? {}
-  const analysis = result?.analysis    ?? {}
-  const adv      = trust.advantage     ?? {}
+  const trust = result?.trust_info ?? {}
+  const analysis = result?.analysis ?? {}
+  const advantage = trust.advantage ?? {}
 
-  const score   = trust.score   ?? '--'
-  const level   = trust.level   ?? t('evalPending')
-  const ial     = trust.ial     ?? 'IAL: LEVEL 0'
-  const stars   = adv.stars     ?? 0
-  const advText = adv.analysis  ?? 'Cognitive engine awaiting document stream…'
-  const metrics = analysis.converted_metrics ?? { val: '--', system: 'Cross-System Mapping…', detail: 'Detailed metrics will appear here after analysis.' }
-  const stdInfo = analysis.standard_info     ?? { code: 'N/A' }
-  const redacted = (analysis.redacted_credentials ?? []).map(c => `[FILE: ${c.name}]\n${c.content}`).join('\n\n---\n\n')
-  const aiReport = analysis.advantage_analysis ?? 'Awaiting data input…'
-
-  const progressW = typeof score === 'number' ? `${score}%` : '0%'
+  const score = trust.score ?? '--'
+  const level = trust.level ?? t('evalPending')
+  const ial = trust.ial ?? 'IAL 0'
+  const stars = Math.max(0, Math.min(5, advantage.stars ?? 0))
+  const metrics = analysis.converted_metrics ?? {
+    val: '--',
+    system: 'Pending',
+    detail: 'Detailed metrics will appear after analysis.',
+  }
+  const stdInfo = analysis.standard_info ?? { code: 'N/A' }
+  const redacted = (analysis.redacted_credentials ?? [])
+    .map((item) => `[FILE: ${item.name}]\n${item.content}`)
+    .join('\n\n---\n\n')
 
   return (
-    <div className="lg:col-span-5 space-y-6">
-      {/* Trust score */}
-      <div className="glass rounded-[2rem] p-8 relative overflow-hidden shadow-2xl">
-        <div className="absolute top-0 right-0 bg-vault-accent/20 px-4 py-1.5 text-[9px] font-black text-vault-accent rounded-bl-2xl uppercase border-b border-l border-white/5">
-          IAL: {ial}
-        </div>
-        <h3 className="text-slate-500 text-[10px] font-black uppercase tracking-[0.4em] mb-8">{t('trustIndex')}</h3>
-        <div className="flex items-end gap-5">
-          <span className="text-7xl font-black text-white tracking-tighter tabular-nums leading-none">{score}</span>
-          <div className="pb-2 flex-1">
-            <span className="block text-vault-safe font-black text-sm uppercase tracking-[0.2em] mb-2">{level}</span>
-            <div className="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden shadow-inner border border-white/5">
-              <div
-                className="h-full bg-gradient-to-r from-vault-accent to-vault-safe transition-all duration-1000"
-                style={{ width: progressW }}
-              />
-            </div>
+    <aside className="space-y-6 lg:col-span-5">
+      <section className="rounded-[1.75rem] border border-cyan-400/14 bg-gradient-to-b from-cyan-400/10 to-slate-900/80 p-6 shadow-2xl shadow-cyan-950/10 backdrop-blur-xl">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.32em] text-cyan-300/70">
+              {t('trustIndex')}
+            </p>
+            <h3 className="mt-2 text-lg font-black text-white">
+              Trust score
+            </h3>
           </div>
-        </div>
-      </div>
-
-      {/* Stars */}
-      <div className="glass rounded-[2rem] p-8 bg-gradient-to-br from-vault-gold/10 to-transparent border border-vault-gold/20 shadow-2xl">
-        <h3 className="text-vault-gold text-[10px] font-black uppercase tracking-[0.4em] mb-5">{t('approvalProb')}</h3>
-        <div className="text-4xl text-vault-gold mb-4 tracking-[0.2em] drop-shadow-[0_0_20px_rgba(251,191,36,0.5)]">
-          {'★'.repeat(stars)}{'☆'.repeat(5 - stars)}
-        </div>
-        <p className="text-xs text-slate-400 font-medium italic leading-relaxed">{advText}</p>
-      </div>
-
-      {/* Report */}
-      <div className="glass rounded-[2rem] overflow-hidden border-t-[5px] border-vault-accent shadow-2xl">
-        <div className="bg-slate-800/60 px-6 py-5 border-b border-slate-700/50 flex justify-between items-center">
-          <h3 className="text-white font-black text-[11px] uppercase tracking-[0.3em]">{t('aiReport')}</h3>
-          <span className="px-3 py-1 bg-vault-accent/10 text-vault-accent rounded-lg text-[9px] font-mono font-black border border-vault-accent/20">
-            STD: {stdInfo.code}
+          <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-200">
+            {ial}
           </span>
         </div>
-        <div className="p-8 space-y-6">
-          <div className="bg-slate-900/90 rounded-[1.5rem] p-6 border border-white/5 shadow-inner">
-            <p className="text-4xl font-black text-white mb-2 tabular-nums">{metrics.val}</p>
-            <p className="text-[11px] text-vault-accent font-black uppercase tracking-[0.2em]">{metrics.system}</p>
-            <div className="h-px bg-slate-800 my-4" />
-            <p className="text-xs text-slate-500 font-mono leading-relaxed italic">{metrics.detail}</p>
+
+        <div className="mt-6 grid gap-4">
+          <div className="rounded-[1.5rem] border border-white/6 bg-slate-950/70 p-5">
+            <div className="flex items-end gap-4">
+              <span className="text-6xl font-black tracking-tight text-white tabular-nums">
+                {score}
+              </span>
+              <div className="pb-2">
+                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
+                  {level}
+                </p>
+                <div className="mt-3 h-2.5 w-64 max-w-full overflow-hidden rounded-full bg-slate-800">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-cyan-400 via-sky-400 to-emerald-400 transition-all duration-700"
+                    style={{ width: `${typeof score === 'number' ? score : 0}%` }}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="bg-slate-950/50 rounded-[1.5rem] p-6 border border-white/5">
-            <p className="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em] mb-4">VaultSage AI Analysis + PII Redaction Layer</p>
-            <pre className="text-[11px] font-mono text-slate-500 max-h-[150px] overflow-y-auto leading-loose whitespace-pre-wrap">
-              {redacted || '--'}
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <MetricCard
+              label="Approval probability"
+              value={`${stars}/5`}
+              hint={advantage.analysis ?? 'Model-generated confidence summary.'}
+              accent="text-cyan-200"
+              border="border-cyan-400/12"
+            />
+            <MetricCard
+              label="Identity assurance"
+              value={ial}
+              hint={`Standard code: ${stdInfo.code}`}
+              accent="text-emerald-200"
+              border="border-emerald-400/12"
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="rounded-[1.75rem] border border-white/6 bg-slate-900/70 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.32em] text-slate-500">
+              {t('approvalProb')}
+            </p>
+            <h3 className="mt-2 text-lg font-black text-white">
+              Verdict signal
+            </h3>
+          </div>
+          <div className="text-3xl tracking-[0.18em] text-amber-300">
+            {'★'.repeat(stars)}{'☆'.repeat(5 - stars)}
+          </div>
+        </div>
+        <p className="mt-4 text-sm leading-7 text-slate-300">
+          {advantage.analysis ?? 'Assessment pending.'}
+        </p>
+      </section>
+
+      <section className="rounded-[1.75rem] border border-white/6 bg-slate-900/70 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.32em] text-slate-500">
+              {t('aiReport')}
+            </p>
+            <h3 className="mt-2 text-lg font-black text-white">
+              Standardized report
+            </h3>
+          </div>
+          <span className="rounded-lg border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-200">
+            {stdInfo.code}
+          </span>
+        </div>
+
+        <div className="mt-5 grid gap-4">
+          <MetricCard
+            label="Converted metric"
+            value={metrics.val}
+            hint={metrics.system}
+            accent="text-white"
+          />
+
+          <div className="rounded-[1.5rem] border border-white/6 bg-slate-950/70 p-5">
+            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
+              Evidence digest
+            </p>
+            <pre className="mt-4 max-h-[220px] overflow-y-auto whitespace-pre-wrap text-[11px] leading-7 text-slate-400">
+              {redacted || 'No redacted evidence available.'}
             </pre>
           </div>
         </div>
-      </div>
-    </div>
+      </section>
+    </aside>
   )
 }
